@@ -57,7 +57,7 @@ class RichMark(StrictModel):
 
 class RichNode(StrictModel):
     type: Literal['doc', 'paragraph', 'text', 'bulletList', 'orderedList', 'listItem', 'hardBreak']
-    text: str | None = None
+    text: Annotated[str, StringConstraints(strip_whitespace=False, max_length=50000)] | None = None
     content: list['RichNode'] | None = None
     marks: list[RichMark] | None = None
 

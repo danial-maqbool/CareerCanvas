@@ -22,7 +22,7 @@ export default function ResumeEditor({initial,onClose,onOpen}:{initial:Resume,on
   const [selected,setSelected]=useState('header'),[zoom,setZoom]=useState(75),[preview,setPreview]=useState(false),[mobilePanel,setMobilePanel]=useState<'sections'|'properties'|null>(null)
   const [match,setMatch]=useState(false)
   const [ats,setAts]=useState(false)
-  const [history,setHistory]=useState(false)
+  const [history,setHistory]=useState(initial.open_panel==='versions')
   const [layout,setLayout]=useState<Pagination|null>(null)
   const [choosingTemplate,setChoosingTemplate]=useState(false)
   const [bulletEditing,setBulletEditing]=useState<{sectionId:string,itemId:string}|null>(null)
