@@ -26,3 +26,11 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Frontend unit test and production build: PASS.
 - Browser library workflow: create, name, duplicate, rename, archive, delete, reload.
 - Fixed separator whitespace normalization discovered by the content-preservation test and action-menu dismissal discovered by browser testing.
+
+## Phases 5–6 — state and live editor
+
+- Frontend unit tests: PASS (4 total), including undo/redo, failed-save retention, and revision handling.
+- Production build: PASS.
+- Browser: PASS for inline name editing, immediate summary preview, section visibility/order, autosave, undo/redo, reload persistence, and mobile properties drawer.
+- Resume Library regression workflow: PASS.
+- Desktop and 390×844 editor screenshots visually inspected. Pagination and drag handles are subsequent phases.

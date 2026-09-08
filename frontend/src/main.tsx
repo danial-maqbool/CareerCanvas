@@ -4,5 +4,6 @@ import App from './App'
 import './styles.css'
 import './profile.css'
 import './resume.css'
+import './editor.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>)
