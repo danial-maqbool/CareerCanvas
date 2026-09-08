@@ -34,3 +34,10 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Browser: PASS for inline name editing, immediate summary preview, section visibility/order, autosave, undo/redo, reload persistence, and mobile properties drawer.
 - Resume Library regression workflow: PASS.
 - Desktop and 390×844 editor screenshots visually inspected. Pagination and drag handles are subsequent phases.
+
+## Phase 7 — section and bullet dragging
+
+- Production build and four frontend unit tests: PASS.
+- Pointer drag of Projects above Experience, keyboard drag of achievement bullets, and persistence after reload: PASS.
+- Existing editor workflow: PASS. Browser keyboard tests wait for the drag layout to be measured before issuing movement.
+- Explicit move-up/down controls remain available. Dragging starts only from dedicated handles after an activation threshold.

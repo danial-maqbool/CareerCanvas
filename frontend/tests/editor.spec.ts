@@ -17,7 +17,7 @@ test('live editing, inline editing, hide, reorder, autosave and undo',async({pag
   await page.getByRole('button',{name:'Hide Certifications',exact:true}).click()
   await page.getByRole('button',{name:'Move Projects up',exact:true}).click()
   await page.getByRole('button',{name:'Move Projects up',exact:true}).click()
-  await expect(page.getByRole('status')).toContainText('Saved')
+  await expect(page.locator('.editor-document-name').getByRole('status')).toContainText('Saved')
   await expect.poll(async()=>{const saved=await (await request.get(`/api/resumes/${resume.id}`)).json();return saved.document.personal.summary}).toBe('Built reliable Python services for three teams.')
   await page.getByRole('button',{name:'Undo',exact:true}).click()
   await page.getByRole('button',{name:'Redo',exact:true}).click()
