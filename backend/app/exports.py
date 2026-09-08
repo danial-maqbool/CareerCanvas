@@ -60,3 +60,12 @@ def export_json(resume_id: str, db: Session = Depends(session)):
     resume = require_resume(db, resume_id)
     payload = {'format':'CareerCanvas Resume','version':1,'name':resume.name,'purpose':resume.purpose,'target_role':resume.target_role,'document':resume.document}
     return Response(json.dumps(payload, ensure_ascii=False, indent=2),media_type='application/json',headers={'Content-Disposition':f"attachment; filename*=UTF-8''{quote(resume.name, safe='')}.json",'Cache-Control':'no-store'})
+
+
+@router.post('/{resume_id}/export/docx')
+def export_docx(resume_id: str, db: Session = Depends(session)):
+    from .docx_export import render_docx
+    resume=require_resume(db,resume_id)
+    content=render_docx(resume.document)
+    db.add(AuditEvent(action='DOCX Exported',entity_id=resume.id));db.commit()
+    return Response(content,media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',headers={'Content-Disposition':f"attachment; filename*=UTF-8''{quote(resume.name,safe='')}.docx",'Cache-Control':'no-store'})

@@ -70,3 +70,11 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - All 23 generated pages rendered with Poppler and inspected as a contact sheet. The Two Column side-rail placement was improved, re-tested, and re-rendered.
 - Browser PDF and JSON downloads after pending edits: PASS; downloaded names and JSON content reflect the saved document.
 - Generated validation PDFs and PNGs remain in ignored `data/validation/`.
+
+## Phase 12 — editable DOCX
+
+- Backend suite: PASS, 60 tests including twelve PDF exports and thirteen DOCX content/structure checks. DOCX checks were rerun after final layout adjustments and passed.
+- DOCX preserves headings, real Word bullets, links, profile content, page size, and hidden-field exclusions. It contains editable text rather than page images.
+- Packaged `render_docx.py` could not render because LibreOffice is unavailable. An isolated Microsoft Word read-only export was used instead; all three final pages were rendered with Poppler and visually inspected.
+- Fixed an inherited title border and an orphaned project link. Word grouping now keeps ordinary entries and their links together.
+- DOCX intentionally uses a single-column editable structure; it does not reproduce every two-column PDF layout exactly.

@@ -1,6 +1,6 @@
 # Resume engine
 
-Status: document editing, template rendering, measured pagination, PDF export, and JSON document export implemented. DOCX and version history are subsequent phases.
+Status: document editing, template rendering, measured pagination, PDF export, editable DOCX, and JSON document export implemented. Version history is a subsequent phase.
 
 ## Section model
 
@@ -25,6 +25,8 @@ Pagination measures escaped server-rendered React markup in an offscreen browser
 ## DOCX export
 
 Use python-docx for editable headings, paragraphs, bullets, dates, and hyperlinks. Validate document structure and expected text; document any presentation differences from PDF.
+
+DOCX uses semantic Word paragraph styles, native bullet lists, and hyperlink relationships. It retains the selected system font, type size, margins, page size, and colors, while reconstructing content as a single-column document for editability. Ordinary entries use keep-with-next grouping to avoid detached links. Arbitrarily long entries may still flow across Word pages. DOCX page breaks can differ from Chromium PDFs.
 
 ## JSON and versions
 
