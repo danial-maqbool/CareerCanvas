@@ -42,7 +42,7 @@ test('first run resume import fills profile and direct ATS can create an editabl
   await expect(page.getByText('Python', { exact: true }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Apply to Career Profile' }).click()
   await expect(page.getByText(/Applied to Career Profile/)).toBeVisible()
-  await page.getByRole('button', { name: 'Close' }).click()
+  await page.getByRole('button', { name: 'Close', exact: true }).click()
 
   await page.getByRole('button', { name: 'Career Profile' }).click()
   await expect(page.getByRole('heading', { name: 'Alex Morgan' })).toBeVisible()
