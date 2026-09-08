@@ -41,6 +41,9 @@ jobs:
       - name: Install Python dependencies
         run: .venv/bin/python -m pip install -r requirements-lock.txt
 
+      - name: Validate documentation links
+        run: .venv/bin/python scripts/check_markdown_links.py
+
       - name: Install Chromium for Python Playwright
         run: .venv/bin/python -m playwright install --with-deps chromium
 
