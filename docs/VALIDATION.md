@@ -1,0 +1,15 @@
+# Validation record
+
+Only results actually run are recorded as passing. Product acceptance remains incomplete until all requested workflows have evidence.
+
+## Phase 2 — foundation
+
+- Frontend unit test: PASS (1 test).
+- TypeScript and Vite production build: PASS.
+- Playwright shell navigation and horizontal overflow: PASS at 1920×1080, 1440×900, 1366×768, 1024×768, 768×1024, and 390×844 (6 tests).
+- Uncaught browser page errors during these shell checks: none.
+- Desktop screenshot manually inspected at 1366 pixels wide.
+- Private database, environment, import/export, and dependency paths: ignored by Git.
+- Backend migration repeatability, data preservation, health, unknown API, Host validation, and cross-origin rejection: PASS (2 tests). Two upstream deprecation warnings are reported by the HTTP test client.
+
+Shell tests do not establish acceptance of resume editing, exports, or other product workflows. Their screenshots are local test artifacts, not the final populated portfolio screenshots.
