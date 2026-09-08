@@ -64,6 +64,9 @@ def create_app(settings: Settings | None = None):
     from .ai_assistance import router as ai_router
     app.include_router(ai_router)
 
+    from .cover_letters import router as cover_router
+    app.include_router(cover_router)
+
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
         app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')

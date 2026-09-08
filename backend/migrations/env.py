@@ -1,3 +1,4 @@
+from backend.app import cover_letters
 from alembic import context
 from backend.app.config import Settings
 from backend.app.database import Base, build_engine
