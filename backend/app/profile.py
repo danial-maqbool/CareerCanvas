@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .dependencies import session
-from .models import AuditEvent, utcnow
+from .models import AuditEvent, utcnow, iso
 from .profile_models import CareerItem, CareerProfile
 from .profile_schemas import ItemInput, PersonalDetails
 
@@ -20,7 +20,7 @@ def get_profile(db: Session):
 
 
 def serialize_item(item):
-    return {'id': item.id, 'kind': item.kind, 'data': item.data, 'updated_at': item.updated_at.isoformat()}
+    return {'id': item.id, 'kind': item.kind, 'data': item.data, 'updated_at': iso(item.updated_at)}
 
 
 def completion(profile, items):

@@ -53,6 +53,8 @@ def create_app(settings: Settings | None = None):
     app.include_router(resume_router)
     from .exports import router as export_router
     app.include_router(export_router)
+    from .versions import router as version_router
+    app.include_router(version_router)
 
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():

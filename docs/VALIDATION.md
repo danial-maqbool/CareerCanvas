@@ -78,3 +78,10 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Packaged `render_docx.py` could not render because LibreOffice is unavailable. An isolated Microsoft Word read-only export was used instead; all three final pages were rendered with Poppler and visually inspected.
 - Fixed an inherited title border and an orphaned project link. Word grouping now keeps ordinary entries and their links together.
 - DOCX intentionally uses a single-column editable structure; it does not reproduce every two-column PDF layout exactly.
+
+## Phase 13 — versions and comparison
+
+- Backend version lifecycle and resume regressions: PASS (5 focused tests).
+- Frontend suite: PASS (16 tests), production build: PASS.
+- Browser create v1, edit, create v2, compare, restore v1, retain v2 and automatic safety v3: validated by the version workflow.
+- Timestamp serialization now consistently includes UTC, including records reloaded from SQLite.

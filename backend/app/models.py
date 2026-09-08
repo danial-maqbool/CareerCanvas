@@ -15,6 +15,10 @@ def utcnow():
     return datetime.now(timezone.utc)
 
 
+def iso(value):
+    return (value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)).isoformat()
+
+
 class Setting(Base):
     __tablename__ = 'settings'
     key: Mapped[str] = mapped_column(String(100), primary_key=True)

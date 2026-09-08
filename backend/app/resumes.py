@@ -5,7 +5,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .dependencies import session
-from .models import AuditEvent, identifier, utcnow
+from .models import AuditEvent, identifier, utcnow, iso
 from .profile import get_profile
 from .profile_models import CareerItem
 from .resume_models import Resume
@@ -16,7 +16,7 @@ HEADINGS = {'experience':'Experience','education':'Education','projects':'Projec
 
 
 def serialize(resume):
-    return {key: getattr(resume,key) for key in ['id','name','purpose','target_role','document','archived','primary','revision']} | {'updated_at': resume.updated_at.isoformat(), 'created_at': resume.created_at.isoformat()}
+    return {key: getattr(resume,key) for key in ['id','name','purpose','target_role','document','archived','primary','revision']} | {'updated_at': iso(resume.updated_at), 'created_at': iso(resume.created_at)}
 
 
 def require_resume(db, resume_id):
