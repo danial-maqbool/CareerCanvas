@@ -59,6 +59,9 @@ def create_app(settings: Settings | None = None):
     from .resumes import router as resume_router
 
     app.include_router(resume_router)
+    from .resume_import import router as resume_import_router
+
+    app.include_router(resume_import_router)
     from .exports import router as export_router
 
     app.include_router(export_router)
