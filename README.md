@@ -4,7 +4,7 @@ A local-first visual resume builder and career management workspace.
 
 ## Development status
 
-The MIT-licensed repository is initialized. Phase 2 adds the React workspace shell, FastAPI service, SQLite connection management, Alembic migrations, and test infrastructure. Product features remain under development; navigation currently demonstrates the shell rather than completed modules.
+The MIT-licensed application is under active development. The foundation and reusable Career Profile are implemented. Profile, Skills, Achievements, and Portfolio views support persistent editing; remaining workspace modules are still being implemented. See [validation](docs/VALIDATION.md) for bounded test evidence.
 
 ## Product scope
 
@@ -30,7 +30,7 @@ Use Python 3.11 or newer and Node.js 22 or newer. On Windows:
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
 cd frontend
 npm.cmd ci
 npm.cmd run build
@@ -54,3 +54,7 @@ npm.cmd run build
 Backend tests use isolated temporary databases. Never use a personal workspace database as a test fixture.
 
 Verified product capabilities, screenshots, and export validation results will be added as implementation progresses.
+
+## Demo
+
+Choose **Load Demo Career** in an empty workspace to load fictional AI/software engineer Alex Morgan: two experiences, two education records, twelve skills, three projects, a certification, two achievements, one publication, one language, and two portfolio entries. Demo loading refuses to replace existing profile data. No real personal information is included.

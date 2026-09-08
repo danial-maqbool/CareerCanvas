@@ -22,7 +22,11 @@ Use shared semantic document content with distinct presentation layouts. Keep re
 
 FastAPI validates requests through Pydantic v2. SQLAlchemy persists related profile, resume, application, interview, goal, tag, and history records in SQLite. Alembic migrations preserve existing user data across schema changes.
 
-The foundation includes the settings and audit-event tables. Product-specific tables arrive in subsequent migrations. `run.py` applies migrations before serving the Vite production build. The app factory accepts an isolated database URL for tests; request handlers use an application-owned SQLAlchemy session factory. SQLite foreign keys and a busy timeout are enabled on each connection.
+The foundation includes settings and audit-event tables. Migration 0002 adds career profiles and typed career items with a foreign-key relationship and indexed profile/type lookups. Type-specific Pydantic models validate the JSON payload of every career item, rejecting unknown fields. This retains extensibility without allowing unvalidated arbitrary content. `run.py` applies migrations before serving the Vite production build. The app factory accepts an isolated database URL for tests; request handlers use an application-owned SQLAlchemy session factory. SQLite foreign keys and a busy timeout are enabled on each connection.
+
+## Career Profile
+
+Personal details and ten typed content categories support persistent create, read, update, and delete operations. The frontend uses labeled React Hook Form / Zod drawers and explicit save/error feedback. Completion reflects six useful essentials; optional education, photos, references, and other irrelevant fields are not mandatory. Fictional demo loading is explicit and returns a conflict rather than replacing existing profile content.
 
 The server binds to loopback by default, validates the Host header, and refuses cross-origin writes. No telemetry, external fonts, or external AI requests are made by the foundation. It is a single-device application, not a hosted multi-user authentication system.
 

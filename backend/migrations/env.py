@@ -2,6 +2,7 @@ from alembic import context
 from backend.app.config import Settings
 from backend.app.database import Base, build_engine
 from backend.app import models  # noqa: F401
+from backend.app import profile_models  # noqa: F401
 
 config = context.config
 url = config.attributes.get('database_url') or Settings().database_url

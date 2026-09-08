@@ -45,6 +45,11 @@ def create_app(settings: Settings | None = None):
             connection.execute(text('SELECT 1'))
         return {'status': 'ok', 'storage': 'local', 'ai_enabled': settings.ai_enabled}
 
+    from .profile import router as profile_router
+    from .demo import router as demo_router
+    app.include_router(profile_router)
+    app.include_router(demo_router)
+
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
         app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')

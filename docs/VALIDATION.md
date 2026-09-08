@@ -13,3 +13,9 @@ Only results actually run are recorded as passing. Product acceptance remains in
 - Backend migration repeatability, data preservation, health, unknown API, Host validation, and cross-origin rejection: PASS (2 tests). Two upstream deprecation warnings are reported by the HTTP test client.
 
 Shell tests do not establish acceptance of resume editing, exports, or other product workflows. Their screenshots are local test artifacts, not the final populated portfolio screenshots.
+
+## Phase 3 — Career Profile
+
+- Backend: PASS, 31 tests total covering all demo item types, CRUD, validation, persistence, completion, and nondestructive demo loading.
+- Frontend unit test and production build: PASS.
+- Browser CRUD and reload persistence: PASS (1 workflow). Six shell viewport tests also passed against FastAPI. A required-label test selector was corrected before the workflow passed.
