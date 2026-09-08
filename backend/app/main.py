@@ -79,6 +79,9 @@ def create_app(settings: Settings | None = None):
     from .github_import import router as github_router
     app.include_router(github_router)
 
+    from .search import router as search_router
+    app.include_router(search_router)
+
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
         app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')

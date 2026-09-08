@@ -10,7 +10,7 @@ import { CareerItem, fields, itemSubtitle, itemTitle, Kind, labels, Personal, Pr
 
 export function Drawer({ title, onClose, children, wide }: { title: string, onClose: () => void, children: React.ReactNode, wide?:boolean }) {
   const ref = useRef<HTMLDialogElement>(null)
-  useEffect(() => { const dialog = ref.current!; dialog.showModal(); return () => dialog.close() }, [])
+  useEffect(() => { const dialog = ref.current!; dialog.showModal(); dialog.querySelector<HTMLElement>('input:not([disabled]),textarea,[contenteditable=true]')?.focus(); return () => dialog.close() }, [])
   return <dialog className={`drawer ${wide?"wide-drawer":""}`} ref={ref} onCancel={onClose} onClick={e => { if (e.target === ref.current) onClose() }}><div className="drawer-inner"><header><div><span className="eyebrow">CAREER WORKSPACE</span><h2>{title}</h2></div><button className="icon-button" aria-label="Close drawer" onClick={onClose}><X size={20}/></button></header>{children}</div></dialog>
 }
 
