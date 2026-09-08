@@ -61,6 +61,8 @@ def create_app(settings: Settings | None = None):
     app.include_router(ats_router)
     from .job_matching import router as match_router
     app.include_router(match_router)
+    from .ai_assistance import router as ai_router
+    app.include_router(ai_router)
 
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():

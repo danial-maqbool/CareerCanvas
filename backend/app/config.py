@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,6 +12,8 @@ class Settings(BaseSettings):
     port: int = 8000
     database_url: str = f'sqlite:///{(ROOT / "data/careercanvas.db").as_posix()}'
     ai_enabled: bool = False
+    ai_provider: Literal['gemini','ollama'] = 'gemini'
+    ollama_model: str = ''
     gemini_api_key: str = ''
     gemini_model: str = ''
     export_directory: Path = ROOT / 'data/exports'

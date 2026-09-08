@@ -51,7 +51,9 @@ def render_docx(data:dict):
         if personal.get(key) and key not in hidden:
             contact.add_run('  |  ');hyperlink(contact,key.title(),personal[key],style['accent'][1:])
     if personal.get('summary') and 'summary' not in hidden:
-        document.add_heading('Professional Summary',level=1);document.add_paragraph(personal['summary'])
+        document.add_heading('Professional Summary',level=1)
+        if data.get('summary_rich'):rich_docx(document,data['summary_rich'])
+        else:document.add_paragraph(personal['summary'])
     for sec in data['sections']:
         if not sec['visible']:continue
         document.add_heading(sec['heading'],level=1)
@@ -91,3 +93,17 @@ def render_docx(data:dict):
     document.core_properties.subject=''
     document.core_properties.comments=''
     output=BytesIO();document.save(output);return output.getvalue()
+
+
+def rich_docx(document,node,paragraph=None,bullet=False):
+    kind=node['type']
+    if kind=='text':
+        if paragraph is None:paragraph=document.add_paragraph()
+        run=paragraph.add_run(node.get('text') or '')
+        for mark in node.get('marks') or []:
+            if mark['type']=='bold':run.bold=True
+            if mark['type']=='italic':run.italic=True
+    elif kind=='hardBreak' and paragraph is not None:paragraph.add_run().add_break()
+    else:
+        if kind=='paragraph':paragraph=document.add_paragraph(style='List Bullet' if bullet else 'Normal')
+        for child in node.get('content') or []:rich_docx(document,child,paragraph,bullet or kind=='bulletList')

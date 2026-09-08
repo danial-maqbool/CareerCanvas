@@ -51,11 +51,23 @@ class ResumeSection(StrictModel):
     items: list[ResumeItem] = Field(default_factory=list, max_length=200)
 
 
+class RichMark(StrictModel):
+    type: Literal['bold', 'italic']
+
+
+class RichNode(StrictModel):
+    type: Literal['doc', 'paragraph', 'text', 'bulletList', 'orderedList', 'listItem', 'hardBreak']
+    text: str | None = None
+    content: list['RichNode'] | None = None
+    marks: list[RichMark] | None = None
+
+
 class ResumeDocument(StrictModel):
     personal: PersonalDetails = Field(default_factory=PersonalDetails)
     sections: list[ResumeSection] = Field(default_factory=list, max_length=50)
     template: Template = 'Modern'
     style: ResumeStyle = Field(default_factory=ResumeStyle)
+    summary_rich: RichNode | None = None
 
     @model_validator(mode='after')
     def unique_ids(self):

@@ -1,5 +1,9 @@
 import { CSSProperties } from 'react'
-import { ResumeDocument, ResumeItem } from './resume-types'
+import { RichNode, ResumeDocument, ResumeItem } from './resume-types'
+
+export function RichContent({node}:{node:RichNode}) {
+ const children=node.content?.map((n,i)=><RichContent node={n} key={i}/>);if(node.type==='text'){let value:React.ReactNode=node.text;for(const mark of node.marks||[])value=mark.type==='bold'?<strong>{value}</strong>:<em>{value}</em>;return <>{value}</>}if(node.type==='bulletList')return <ul>{children}</ul>;if(node.type==='orderedList')return <ol>{children}</ol>;if(node.type==='listItem')return <li>{children}</li>;if(node.type==='paragraph')return <p>{children}</p>;if(node.type==='hardBreak')return <br/>;return <>{children}</>
+}
 
 export function safeLink(value: unknown) { return typeof value === 'string' && /^https?:\/\//i.test(value) ? value : undefined }
 export function PaperItem({ item, dateStyle='original' }: { item: ResumeItem, dateStyle?:string }) {
@@ -19,7 +23,7 @@ export default function ResumePaper({document:doc, onSelect, onPersonalChange, s
   const inline = (key:string) => onPersonalChange ? {contentEditable:true,suppressContentEditableWarning:true,onBlur:(e:React.FocusEvent<HTMLElement>) => onPersonalChange(key,e.currentTarget.textContent || ''),onKeyDown:(e:React.KeyboardEvent) => {if(e.key === 'Enter'){e.preventDefault();(e.target as HTMLElement).blur()}},'aria-label':`Edit ${key.replaceAll('_',' ')}`} : {}
   return <article className={`resume-paper template-${doc.template.toLowerCase().replaceAll(' ','-')} headings-${s.heading_style}`} style={style}>
     {showHeader&&<header className={`resume-header ${selected === 'header' ? 'paper-selected' : ''}`} style={{textAlign:s.alignment}} onClick={() => onSelect?.('header')}><h1 {...inline('full_name')}>{p.full_name || 'Your name'}</h1>{visible('professional_title') && <div className="resume-title" {...inline('professional_title')}>{p.professional_title}</div>}<div className="resume-contact">{visible('email') && p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}{visible('phone') && p.phone && <span>{p.phone}</span>}{visible('city') && p.city && <span>{p.city}{visible('country') && p.country ? `, ${p.country}` : ''}</span>}{(['linkedin','github','portfolio','website'] as const).filter(key => visible(key) && safeLink(p[key])).map(key => <a key={key} href={p[key]}>{key === 'linkedin' ? 'LinkedIn' : key === 'github' ? 'GitHub' : key === 'portfolio' ? 'Portfolio' : 'Website'}</a>)}</div></header>}
-    {showSummary&&visible('summary') && p.summary && <section className={`resume-section ${selected === 'summary' ? 'paper-selected' : ''}`} onClick={() => onSelect?.('summary')}><h2>Professional Summary</h2><p {...inline('summary')}>{p.summary}</p></section>}
+    {showSummary&&visible('summary') && p.summary && <section className={`resume-section ${selected === 'summary' ? 'paper-selected' : ''}`} onClick={() => onSelect?.('summary')}><h2>Professional Summary</h2>{doc.summary_rich?<div><RichContent node={doc.summary_rich}/></div>:<p {...inline('summary')}>{p.summary}</p>}</section>}
     <div className="resume-body">{doc.sections.filter(section => section.visible).map(section => <section className={`resume-section section-${section.kind} ${selected === section.id ? 'paper-selected' : ''}`} key={section.id} data-section-id={section.id} onClick={() => onSelect?.(section.id)}><h2>{section.heading}</h2>{section.kind === 'skills' ? <div className="resume-skills" style={{columns:section.columns}}>{section.items.map(i => String(i.data.name)).join(section.separator)}</div> : section.items.map(item => <PaperItem key={item.id} item={item} dateStyle={s.date_style}/>)}</section>)}</div>
   </article>
 }

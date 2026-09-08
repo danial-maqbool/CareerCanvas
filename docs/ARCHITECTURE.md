@@ -37,3 +37,6 @@ Render semantic HTML through Chromium for selectable-text PDFs. Generate editabl
 ## AI assistance
 
 AI remains optional and disabled by default. External requests contain only necessary text. Proposed rewrites require original/suggested review and factual-change checks before acceptance.
+
+## Optional AI and rich text
+TipTap stores a restricted JSON tree (paragraphs, bold, italic, bullets), with plain summary text retained for matching and ATS analysis. PDF and DOCX preserve this formatting. AI is disabled by default. Gemini requires per-request consent; Ollama uses localhost. Only the selected source text is submitted. Suggestions remain separate until reviewed. New detected numbers, technologies, named entities, and qualifications block acceptance. These deterministic checks are conservative heuristics, not proof of factual equivalence; users must review every suggestion. Live provider calls require user configuration and have not been certified by the mocked safety tests.
