@@ -38,7 +38,7 @@ test('first run resume import fills profile and direct ATS can create an editabl
     buffer: Buffer.from(resume),
   })
   await expect(page.getByRole('heading', { name: 'Review before import' })).toBeVisible()
-  await expect(page.getByDisplayValue('Alex Morgan')).toBeVisible()
+  await expect(page.locator('input[value="Alex Morgan"]')).toBeVisible()
   await expect(page.getByText('Python', { exact: true }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Apply to Career Profile' }).click()
   await expect(page.getByText(/Applied to Career Profile/)).toBeVisible()
