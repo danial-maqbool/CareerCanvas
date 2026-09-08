@@ -13,6 +13,8 @@ import {
   Wrench,
   Search,
   Plus,
+  ScanSearch,
+  Upload,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Profile, { ItemEditor } from './Profile'
@@ -26,6 +28,7 @@ import './activity.css'
 import CoverLetters, { downloadFile } from './CoverLetters'
 import ResumeLibrary, { ResumeWizard } from './ResumeLibrary'
 import ResumeEditor from './ResumeEditor'
+import ResumeImport from './ResumeImport'
 import TemplateGallery from './TemplateGallery'
 import { Resume } from './resume-types'
 import { Kind, CareerItem, Profile as ProfileData } from './profile-types'
@@ -53,6 +56,7 @@ export default function App() {
     [opened, setOpened] = useState<Resume | null>(null),
     [palette, setPalette] = useState(false),
     [quick, setQuick] = useState(''),
+    [resumeImport, setResumeImport] = useState<'profile' | 'ats' | null>(null),
     [item, setItem] = useState<CareerItem | undefined>(),
     [job, setJob] = useState<Job | undefined>(),
     [record, setRecord] = useState<CareerRecord | undefined>(),
@@ -273,6 +277,22 @@ export default function App() {
                         {k}
                       </button>
                     ))}
+                    <button
+                      onClick={(e) => {
+                        e.currentTarget.closest('details')?.removeAttribute('open')
+                        setResumeImport('profile')
+                      }}
+                    >
+                      Import Resume
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.currentTarget.closest('details')?.removeAttribute('open')
+                        setResumeImport('ats')
+                      }}
+                    >
+                      ATS Review Upload
+                    </button>
                   </div>
                 </details>
               </div>
@@ -286,7 +306,19 @@ export default function App() {
                     One thoughtful space for your career, from first draft to next opportunity.
                   </p>
                 </div>
-                <span className="outline-label">LOCAL CAREER WORKSPACE</span>
+                <div className="page-heading-actions">
+                  {(page === 'Career Profile' || page === 'Dashboard') && (
+                    <button className="button secondary" onClick={() => setResumeImport('profile')}>
+                      <Upload size={15} /> Import Resume
+                    </button>
+                  )}
+                  {(page === 'Resumes' || page === 'Dashboard') && (
+                    <button className="button secondary" onClick={() => setResumeImport('ats')}>
+                      <ScanSearch size={15} /> Upload Resume for ATS Review
+                    </button>
+                  )}
+                  <span className="outline-label">LOCAL CAREER WORKSPACE</span>
+                </div>
               </div>
               {notice && (
                 <p className="notice" role="status">
@@ -342,6 +374,21 @@ export default function App() {
           onCommand={(name) => void command(name)}
           onResult={(r) => void result(r)}
           hasResume={!!opened}
+        />
+      )}
+      {resumeImport && (
+        <ResumeImport
+          mode={resumeImport}
+          onClose={() => setResumeImport(null)}
+          onChanged={(message) => {
+            setNotice(message)
+            setRefresh((n) => n + 1)
+          }}
+          onCreated={(resume) => {
+            setResumeImport(null)
+            setNotice('Editable CareerCanvas resume created from uploaded content')
+            setOpened(resume)
+          }}
         />
       )}
       {quick === 'Resume' && (
