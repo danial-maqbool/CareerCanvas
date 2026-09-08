@@ -9,9 +9,9 @@ from backend.app.main import create_app
 
 @pytest.fixture
 def client(tmp_path):
-    url = f'sqlite:///{tmp_path / "workspace.db"}'
-    config = Config(str(ROOT / 'alembic.ini'))
-    config.attributes['database_url'] = url
-    command.upgrade(config, 'head')
+    url = f"sqlite:///{tmp_path / 'workspace.db'}"
+    config = Config(str(ROOT / "alembic.ini"))
+    config.attributes["database_url"] = url
+    command.upgrade(config, "head")
     with TestClient(create_app(Settings(database_url=url))) as instance:
         yield instance

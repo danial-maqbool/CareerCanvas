@@ -3,21 +3,345 @@ import { FileText, Plus } from 'lucide-react'
 import { api, json } from './api'
 import { Drawer } from './Profile'
 import { Resume } from './resume-types'
-export type Letter={id:string,name:string,document:Record<string,string>,resume_version_id:string|null,archived:boolean,revision:number,updated_at:string}
-export async function downloadFile(url:string,name:string,method='POST'){const response=await fetch(url,{method});if(!response.ok)throw new Error((await response.json()).detail||'Export failed');const href=URL.createObjectURL(await response.blob()),a=document.createElement('a');a.href=href;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(href),1000)}
-const fields=['header','greeting','opening','experience','company_fit','closing','job_description']
-export default function CoverLetters(){
- const [rows,setRows]=useState<Letter[]>([]),[editing,setEditing]=useState<Letter|null>(null),[error,setError]=useState(''),[archived,setArchived]=useState(false)
- const reload=()=>api<Letter[]>('/cover-letters').then(setRows).catch(e=>setError(e.message))
- useEffect(()=>{void reload()},[])
- async function create(){try{const profile=await api<{personal:Record<string,string>}>('/profile');const row=await api<Letter>('/cover-letters',json('POST',{name:'Untitled cover letter',document:{header:[profile.personal.full_name,profile.personal.email].filter(Boolean).join('\n')}}));setEditing(row);void reload()}catch(e){setError((e as Error).message)}}
- return <><div className="library-toolbar"><p>{rows.filter(r=>!r.archived).length} letters · a personal introduction for every opportunity</p><label><input type="checkbox" checked={archived} onChange={e=>setArchived(e.target.checked)}/> Show archived</label><button className="button primary" onClick={create}><Plus size={15}/>Create cover letter</button></div>{error&&<p role="alert">{error}</p>}<div className="letter-grid">{rows.filter(r=>r.archived===archived).map(row=><article className="letter-card" key={row.id}><div className="letter-thumbnail" onClick={()=>setEditing(row)}><FileText size={24}/><strong>{row.document.header.split('\n')[0]||'Your introduction'}</strong><p>{row.document.greeting}</p><p>{row.document.opening||'Tell the company why this opportunity matters to you.'}</p><p>{row.document.experience}</p></div><h3>{row.name}</h3><small>Edited {new Date(row.updated_at).toLocaleDateString()}</small><div className="letter-actions"><button className="button secondary" onClick={()=>setEditing(row)}>Open letter</button><button className="text-action" onClick={async()=>{try{await api(`/cover-letters/${row.id}/duplicate`,json('POST'));void reload()}catch(e){setError((e as Error).message)}}}>Duplicate</button><button className="text-action" onClick={async()=>{const {id,updated_at,...payload}=row;try{await api(`/cover-letters/${id}`,json('PUT',{...payload,archived:!row.archived}));void reload()}catch(e){setError((e as Error).message)}}}>{archived?'Unarchive':'Archive'}</button></div></article>)}</div>{!rows.length&&<div className="empty-state"><FileText/><h2>Make your introduction count.</h2><p>Create a letter and connect it to a saved resume version.</p></div>}{editing&&<LetterEditor initial={editing} onClose={()=>{setEditing(null);void reload()}}/>}</>
+export type Letter = {
+  id: string
+  name: string
+  document: Record<string, string>
+  resume_version_id: string | null
+  archived: boolean
+  revision: number
+  updated_at: string
 }
-function LetterEditor({initial,onClose}:{initial:Letter,onClose:()=>void}){
- const [row,setRow]=useState(initial),[error,setError]=useState(''),[saved,setSaved]=useState(true),[busy,setBusy]=useState(false),[versions,setVersions]=useState<{id:string,note:string,snapshot:Letter}[]>([]),[note,setNote]=useState(''),[resumes,setResumes]=useState<Resume[]>([]),[resumeVersions,setResumeVersions]=useState<{id:string,number:number}[]>([])
- useEffect(()=>{api<Resume[]>('/resumes').then(setResumes).catch(e=>setError(e.message));void loadVersions()},[])
- const loadVersions=()=>api<typeof versions>(`/cover-letters/${row.id}/versions`).then(setVersions)
- async function save(){setBusy(true);try{const {id,updated_at,...payload}=row;const result=await api<Letter>(`/cover-letters/${id}`,json('PUT',payload));setRow(result);setSaved(true);return result}catch(e){setError((e as Error).message);throw e}finally{setBusy(false)}}
- function change(key:string,value:string){setSaved(false);setRow({...row,document:{...row.document,[key]:value}})}
- return <Drawer title="Your cover letter" wide onClose={()=>{if(saved)onClose();else void save().then(onClose).catch(()=>{})}}><div className="letter-editor"><div className="drawer-form"><label className="field"><span>Letter name</span><input value={row.name} onChange={e=>{setSaved(false);setRow({...row,name:e.target.value})}}/></label>{fields.map(key=><label className="field" key={key}><span>{key.replaceAll('_',' ')}</span><textarea rows={key==='header'||key==='greeting'?2:5} value={row.document[key]||''} onChange={e=>change(key,e.target.value)}/></label>)}<label className="field"><span>Choose resume to link a version</span><select defaultValue="" onChange={e=>api<typeof resumeVersions>(`/resumes/${e.target.value}/versions`).then(setResumeVersions).catch(e=>setError(e.message))}><option value="" disabled>Select resume</option>{resumes.map(r=><option value={r.id} key={r.id}>{r.name}</option>)}</select></label><label className="field"><span>Linked resume version</span><select value={row.resume_version_id||''} onChange={e=>{setSaved(false);setRow({...row,resume_version_id:e.target.value||null})}}><option value="">None</option>{row.resume_version_id&&!resumeVersions.some(v=>v.id===row.resume_version_id)&&<option value={row.resume_version_id}>Previously linked version</option>}{resumeVersions.map(v=><option value={v.id} key={v.id}>Version {v.number}</option>)}</select></label><button className="button primary" disabled={busy||!row.name.trim()} onClick={()=>void save().catch(()=>{})}>{saved?'Saved':'Save letter'}</button>{error&&<p role="alert">{error}</p>}<div className="letter-actions">{['pdf','docx'].map(f=><button className="button secondary" disabled={busy} key={f} onClick={()=>void save().then(()=>downloadFile(`/api/cover-letters/${row.id}/export/${f}`,`${row.name}.${f}`)).catch(e=>setError(e.message))}>Export {f.toUpperCase()}</button>)}</div><label className="field"><span>Version note</span><input value={note} onChange={e=>setNote(e.target.value)}/></label><button className="button secondary" disabled={busy} onClick={()=>void save().then(()=>api(`/cover-letters/${row.id}/versions`,json('POST',{note}))).then(()=>{setNote('');return loadVersions()}).catch(e=>setError(e.message))}>Create letter version</button>{versions.map((v,i)=><details key={v.id}><summary>Version {versions.length-i} · {v.note||'Saved snapshot'}</summary><p>{v.snapshot.document.opening}</p><button onClick={()=>{setSaved(false);setRow({...row,name:v.snapshot.name,document:structuredClone(v.snapshot.document)})}}>Use this snapshot as current draft</button></details>)}</div><div className="letter-preview"><div className="letter-paper">{fields.filter(k=>k!=='job_description').map(k=><p key={k}>{row.document[k]}</p>)}</div></div></div></Drawer>
+export async function downloadFile(url: string, name: string, method = 'POST') {
+  const response = await fetch(url, { method })
+  if (!response.ok) throw new Error((await response.json()).detail || 'Export failed')
+  const href = URL.createObjectURL(await response.blob()),
+    a = document.createElement('a')
+  a.href = href
+  a.download = name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(href), 1000)
+}
+const fields = [
+  'header',
+  'greeting',
+  'opening',
+  'experience',
+  'company_fit',
+  'closing',
+  'job_description',
+]
+export default function CoverLetters() {
+  const [rows, setRows] = useState<Letter[]>([]),
+    [editing, setEditing] = useState<Letter | null>(null),
+    [error, setError] = useState(''),
+    [archived, setArchived] = useState(false)
+  const reload = () =>
+    api<Letter[]>('/cover-letters')
+      .then(setRows)
+      .catch((e) => setError(e.message))
+  useEffect(() => {
+    void reload()
+  }, [])
+  async function create() {
+    try {
+      const profile = await api<{ personal: Record<string, string> }>('/profile')
+      const row = await api<Letter>(
+        '/cover-letters',
+        json('POST', {
+          name: 'Untitled cover letter',
+          document: {
+            header: [profile.personal.full_name, profile.personal.email].filter(Boolean).join('\n'),
+          },
+        })
+      )
+      setEditing(row)
+      void reload()
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }
+  return (
+    <>
+      <div className="library-toolbar">
+        <p>
+          {rows.filter((r) => !r.archived).length} letters · a personal introduction for every
+          opportunity
+        </p>
+        <label>
+          <input
+            type="checkbox"
+            checked={archived}
+            onChange={(e) => setArchived(e.target.checked)}
+          />{' '}
+          Show archived
+        </label>
+        <button className="button primary" onClick={create}>
+          <Plus size={15} />
+          Create cover letter
+        </button>
+      </div>
+      {error && <p role="alert">{error}</p>}
+      <div className="letter-grid">
+        {rows
+          .filter((r) => r.archived === archived)
+          .map((row) => (
+            <article className="letter-card" key={row.id}>
+              <div className="letter-thumbnail" onClick={() => setEditing(row)}>
+                <FileText size={24} />
+                <strong>{row.document.header.split('\n')[0] || 'Your introduction'}</strong>
+                <p>{row.document.greeting}</p>
+                <p>
+                  {row.document.opening || 'Tell the company why this opportunity matters to you.'}
+                </p>
+                <p>{row.document.experience}</p>
+              </div>
+              <h3>{row.name}</h3>
+              <small>Edited {new Date(row.updated_at).toLocaleDateString()}</small>
+              <div className="letter-actions">
+                <button className="button secondary" onClick={() => setEditing(row)}>
+                  Open letter
+                </button>
+                <button
+                  className="text-action"
+                  onClick={async () => {
+                    try {
+                      await api(`/cover-letters/${row.id}/duplicate`, json('POST'))
+                      void reload()
+                    } catch (e) {
+                      setError((e as Error).message)
+                    }
+                  }}
+                >
+                  Duplicate
+                </button>
+                <button
+                  className="text-action"
+                  onClick={async () => {
+                    const { id, updated_at, ...payload } = row
+                    try {
+                      await api(
+                        `/cover-letters/${id}`,
+                        json('PUT', { ...payload, archived: !row.archived })
+                      )
+                      void reload()
+                    } catch (e) {
+                      setError((e as Error).message)
+                    }
+                  }}
+                >
+                  {archived ? 'Unarchive' : 'Archive'}
+                </button>
+              </div>
+            </article>
+          ))}
+      </div>
+      {!rows.length && (
+        <div className="empty-state">
+          <FileText />
+          <h2>Make your introduction count.</h2>
+          <p>Create a letter and connect it to a saved resume version.</p>
+        </div>
+      )}
+      {editing && (
+        <LetterEditor
+          initial={editing}
+          onClose={() => {
+            setEditing(null)
+            void reload()
+          }}
+        />
+      )}
+    </>
+  )
+}
+function LetterEditor({ initial, onClose }: { initial: Letter; onClose: () => void }) {
+  const [row, setRow] = useState(initial),
+    [error, setError] = useState(''),
+    [saved, setSaved] = useState(true),
+    [busy, setBusy] = useState(false),
+    [versions, setVersions] = useState<{ id: string; note: string; snapshot: Letter }[]>([]),
+    [note, setNote] = useState(''),
+    [resumes, setResumes] = useState<Resume[]>([]),
+    [resumeVersions, setResumeVersions] = useState<{ id: string; number: number }[]>([])
+  useEffect(() => {
+    api<Resume[]>('/resumes')
+      .then(setResumes)
+      .catch((e) => setError(e.message))
+    void loadVersions()
+  }, [])
+  const loadVersions = () =>
+    api<typeof versions>(`/cover-letters/${row.id}/versions`).then(setVersions)
+  async function save() {
+    setBusy(true)
+    try {
+      const { id, updated_at, ...payload } = row
+      const result = await api<Letter>(`/cover-letters/${id}`, json('PUT', payload))
+      setRow(result)
+      setSaved(true)
+      return result
+    } catch (e) {
+      setError((e as Error).message)
+      throw e
+    } finally {
+      setBusy(false)
+    }
+  }
+  function change(key: string, value: string) {
+    setSaved(false)
+    setRow({ ...row, document: { ...row.document, [key]: value } })
+  }
+  return (
+    <Drawer
+      title="Your cover letter"
+      wide
+      onClose={() => {
+        if (saved) onClose()
+        else
+          void save()
+            .then(onClose)
+            .catch(() => {})
+      }}
+    >
+      <div className="letter-editor">
+        <div className="drawer-form">
+          <label className="field">
+            <span>Letter name</span>
+            <input
+              value={row.name}
+              onChange={(e) => {
+                setSaved(false)
+                setRow({ ...row, name: e.target.value })
+              }}
+            />
+          </label>
+          {fields.map((key) => (
+            <label className="field" key={key}>
+              <span>{key.replaceAll('_', ' ')}</span>
+              <textarea
+                rows={key === 'header' || key === 'greeting' ? 2 : 5}
+                value={row.document[key] || ''}
+                onChange={(e) => change(key, e.target.value)}
+              />
+            </label>
+          ))}
+          <label className="field">
+            <span>Choose resume to link a version</span>
+            <select
+              defaultValue=""
+              onChange={(e) =>
+                api<typeof resumeVersions>(`/resumes/${e.target.value}/versions`)
+                  .then(setResumeVersions)
+                  .catch((e) => setError(e.message))
+              }
+            >
+              <option value="" disabled>
+                Select resume
+              </option>
+              {resumes.map((r) => (
+                <option value={r.id} key={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Linked resume version</span>
+            <select
+              value={row.resume_version_id || ''}
+              onChange={(e) => {
+                setSaved(false)
+                setRow({ ...row, resume_version_id: e.target.value || null })
+              }}
+            >
+              <option value="">None</option>
+              {row.resume_version_id &&
+                !resumeVersions.some((v) => v.id === row.resume_version_id) && (
+                  <option value={row.resume_version_id}>Previously linked version</option>
+                )}
+              {resumeVersions.map((v) => (
+                <option value={v.id} key={v.id}>
+                  Version {v.number}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="button primary"
+            disabled={busy || !row.name.trim()}
+            onClick={() => void save().catch(() => {})}
+          >
+            {saved ? 'Saved' : 'Save letter'}
+          </button>
+          {error && <p role="alert">{error}</p>}
+          <div className="letter-actions">
+            {['pdf', 'docx'].map((f) => (
+              <button
+                className="button secondary"
+                disabled={busy}
+                key={f}
+                onClick={() =>
+                  void save()
+                    .then(() =>
+                      downloadFile(`/api/cover-letters/${row.id}/export/${f}`, `${row.name}.${f}`)
+                    )
+                    .catch((e) => setError(e.message))
+                }
+              >
+                Export {f.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <label className="field">
+            <span>Version note</span>
+            <input value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <button
+            className="button secondary"
+            disabled={busy}
+            onClick={() =>
+              void save()
+                .then(() => api(`/cover-letters/${row.id}/versions`, json('POST', { note })))
+                .then(() => {
+                  setNote('')
+                  return loadVersions()
+                })
+                .catch((e) => setError(e.message))
+            }
+          >
+            Create letter version
+          </button>
+          {versions.map((v, i) => (
+            <details key={v.id}>
+              <summary>
+                Version {versions.length - i} · {v.note || 'Saved snapshot'}
+              </summary>
+              <p>{v.snapshot.document.opening}</p>
+              <button
+                onClick={() => {
+                  setSaved(false)
+                  setRow({
+                    ...row,
+                    name: v.snapshot.name,
+                    document: structuredClone(v.snapshot.document),
+                  })
+                }}
+              >
+                Use this snapshot as current draft
+              </button>
+            </details>
+          ))}
+        </div>
+        <div className="letter-preview">
+          <div className="letter-paper">
+            {fields
+              .filter((k) => k !== 'job_description')
+              .map((k) => (
+                <p key={k}>{row.document[k]}</p>
+              ))}
+          </div>
+        </div>
+      </div>
+    </Drawer>
+  )
 }

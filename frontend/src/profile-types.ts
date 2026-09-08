@@ -1,22 +1,210 @@
-export type Kind = 'experience' | 'education' | 'skills' | 'projects' | 'achievements' | 'certifications' | 'publications' | 'languages' | 'references' | 'portfolio'
-export type ItemData = Record<string, string | boolean | string[] | { id: string, text: string }[]>
-export type CareerItem = { id: string, kind: Kind, data: ItemData, updated_at: string }
-export type Personal = { full_name: string, professional_title: string, email: string, phone: string, city: string, country: string, linkedin: string, github: string, portfolio: string, website: string, summary: string, hidden_fields: string[] }
-export type Profile = { id: string, personal: Personal, items: CareerItem[], completion: { score: number, suggestions: string[] } }
-export const labels: Record<Kind, string> = { experience: 'Experience', education: 'Education', skills: 'Skills', projects: 'Projects', achievements: 'Achievements', certifications: 'Certifications', publications: 'Publications', languages: 'Languages', references: 'References', portfolio: 'Portfolio' }
-export const itemTitle = (item: CareerItem) => String(item.data.position || item.data.name || item.data.title || item.data.statement || item.data.language || 'Untitled')
-export const itemSubtitle = (item: CareerItem) => String(item.data.company || item.data.institution || item.data.issuer || item.data.category || item.data.venue || item.data.role || '')
+export type Kind =
+  | 'experience'
+  | 'education'
+  | 'skills'
+  | 'projects'
+  | 'achievements'
+  | 'certifications'
+  | 'publications'
+  | 'languages'
+  | 'references'
+  | 'portfolio'
+export type ItemData = Record<string, string | boolean | string[] | { id: string; text: string }[]>
+export type CareerItem = {
+  id: string
+  kind: Kind
+  data: ItemData
+  updated_at: string
+}
+export type Personal = {
+  full_name: string
+  professional_title: string
+  email: string
+  phone: string
+  city: string
+  country: string
+  linkedin: string
+  github: string
+  portfolio: string
+  website: string
+  summary: string
+  hidden_fields: string[]
+}
+export type Profile = {
+  id: string
+  personal: Personal
+  items: CareerItem[]
+  completion: { score: number; suggestions: string[] }
+}
+export const labels: Record<Kind, string> = {
+  experience: 'Experience',
+  education: 'Education',
+  skills: 'Skills',
+  projects: 'Projects',
+  achievements: 'Achievements',
+  certifications: 'Certifications',
+  publications: 'Publications',
+  languages: 'Languages',
+  references: 'References',
+  portfolio: 'Portfolio',
+}
+export const itemTitle = (item: CareerItem) =>
+  String(
+    item.data.position ||
+      item.data.name ||
+      item.data.title ||
+      item.data.statement ||
+      item.data.language ||
+      'Untitled'
+  )
+export const itemSubtitle = (item: CareerItem) =>
+  String(
+    item.data.company ||
+      item.data.institution ||
+      item.data.issuer ||
+      item.data.category ||
+      item.data.venue ||
+      item.data.role ||
+      ''
+  )
 
-type Field = { key: string, label: string, type?: 'long' | 'list' | 'bullets' | 'check' | 'select', required?: boolean, options?: string[] }
+type Field = {
+  key: string
+  label: string
+  type?: 'long' | 'list' | 'bullets' | 'check' | 'select'
+  required?: boolean
+  options?: string[]
+}
 export const fields: Record<Kind, Field[]> = {
-  experience: [{key:'position',label:'Position',required:true},{key:'company',label:'Company',required:true},{key:'location',label:'Location'},{key:'start_date',label:'Start date'},{key:'end_date',label:'End date'},{key:'current',label:'Currently working',type:'check'},{key:'description',label:'Description',type:'long'},{key:'bullets',label:'Achievement bullets · one per line',type:'bullets'},{key:'technologies',label:'Technologies · comma separated',type:'list'}],
-  education: [{key:'institution',label:'Institution',required:true},{key:'degree',label:'Degree',required:true},{key:'field',label:'Field of study'},{key:'start_date',label:'Start date'},{key:'end_date',label:'End date'},{key:'gpa',label:'GPA'},{key:'location',label:'Location'},{key:'description',label:'Description',type:'long'},{key:'courses',label:'Courses · comma separated',type:'list'},{key:'honors',label:'Honors · comma separated',type:'list'}],
-  skills: [{key:'name',label:'Skill name',required:true},{key:'category',label:'Category'},{key:'level',label:'Current level (profile only)',type:'select',options:['','Learning','Working Knowledge','Proficient','Advanced']},{key:'target_level',label:'Target level'},{key:'target_date',label:'Target date'},{key:'learning_notes',label:'Learning notes',type:'long'}],
-  projects: [{key:'name',label:'Project name',required:true},{key:'role',label:'Your role'},{key:'description',label:'Description',type:'long'},{key:'start_date',label:'Start date'},{key:'end_date',label:'End date'},{key:'url',label:'Project URL'},{key:'github',label:'GitHub URL'},{key:'technologies',label:'Technologies · comma separated',type:'list'},{key:'bullets',label:'Achievement bullets · one per line',type:'bullets'}],
-  achievements: [{key:'statement',label:'Achievement statement',type:'long',required:true},{key:'company',label:'Company'},{key:'project',label:'Project'},{key:'metric',label:'Measurable outcome'},{key:'category',label:'Category'},{key:'skills',label:'Skills · comma separated',type:'list'},{key:'tags',label:'Tags · comma separated',type:'list'}],
-  certifications: [{key:'name',label:'Certification name',required:true},{key:'issuer',label:'Issuer'},{key:'date',label:'Date awarded'},{key:'expiry',label:'Expiry'},{key:'credential_id',label:'Credential ID'},{key:'credential_url',label:'Credential URL'}],
-  publications: [{key:'title',label:'Title',required:true},{key:'authors',label:'Authors'},{key:'venue',label:'Venue'},{key:'year',label:'Year'},{key:'doi',label:'DOI'},{key:'url',label:'URL'},{key:'citation',label:'Citation',type:'long'},{key:'description',label:'Description',type:'long'}],
-  languages: [{key:'language',label:'Language',required:true},{key:'proficiency',label:'Proficiency'}],
-  references: [{key:'name',label:'Name',required:true},{key:'company',label:'Company'},{key:'role',label:'Role'},{key:'email',label:'Email'},{key:'phone',label:'Phone'},{key:'notes',label:'Notes',type:'long'}],
-  portfolio: [{key:'title',label:'Title',required:true},{key:'kind',label:'Type',type:'select',options:['Project','Research','Publication','Website','Demo','Design','GitHub repository']},{key:'description',label:'Description',type:'long'},{key:'thumbnail',label:'Thumbnail URL (optional)'},{key:'url',label:'URL'},{key:'github',label:'GitHub URL'},{key:'date',label:'Date'},{key:'skills',label:'Skills · comma separated',type:'list'},{key:'tags',label:'Tags · comma separated',type:'list'}],
+  experience: [
+    { key: 'position', label: 'Position', required: true },
+    { key: 'company', label: 'Company', required: true },
+    { key: 'location', label: 'Location' },
+    { key: 'start_date', label: 'Start date' },
+    { key: 'end_date', label: 'End date' },
+    { key: 'current', label: 'Currently working', type: 'check' },
+    { key: 'description', label: 'Description', type: 'long' },
+    {
+      key: 'bullets',
+      label: 'Achievement bullets · one per line',
+      type: 'bullets',
+    },
+    {
+      key: 'technologies',
+      label: 'Technologies · comma separated',
+      type: 'list',
+    },
+  ],
+  education: [
+    { key: 'institution', label: 'Institution', required: true },
+    { key: 'degree', label: 'Degree', required: true },
+    { key: 'field', label: 'Field of study' },
+    { key: 'start_date', label: 'Start date' },
+    { key: 'end_date', label: 'End date' },
+    { key: 'gpa', label: 'GPA' },
+    { key: 'location', label: 'Location' },
+    { key: 'description', label: 'Description', type: 'long' },
+    { key: 'courses', label: 'Courses · comma separated', type: 'list' },
+    { key: 'honors', label: 'Honors · comma separated', type: 'list' },
+  ],
+  skills: [
+    { key: 'name', label: 'Skill name', required: true },
+    { key: 'category', label: 'Category' },
+    {
+      key: 'level',
+      label: 'Current level (profile only)',
+      type: 'select',
+      options: ['', 'Learning', 'Working Knowledge', 'Proficient', 'Advanced'],
+    },
+    { key: 'target_level', label: 'Target level' },
+    { key: 'target_date', label: 'Target date' },
+    { key: 'learning_notes', label: 'Learning notes', type: 'long' },
+  ],
+  projects: [
+    { key: 'name', label: 'Project name', required: true },
+    { key: 'role', label: 'Your role' },
+    { key: 'description', label: 'Description', type: 'long' },
+    { key: 'start_date', label: 'Start date' },
+    { key: 'end_date', label: 'End date' },
+    { key: 'url', label: 'Project URL' },
+    { key: 'github', label: 'GitHub URL' },
+    {
+      key: 'technologies',
+      label: 'Technologies · comma separated',
+      type: 'list',
+    },
+    {
+      key: 'bullets',
+      label: 'Achievement bullets · one per line',
+      type: 'bullets',
+    },
+  ],
+  achievements: [
+    {
+      key: 'statement',
+      label: 'Achievement statement',
+      type: 'long',
+      required: true,
+    },
+    { key: 'company', label: 'Company' },
+    { key: 'project', label: 'Project' },
+    { key: 'metric', label: 'Measurable outcome' },
+    { key: 'category', label: 'Category' },
+    { key: 'skills', label: 'Skills · comma separated', type: 'list' },
+    { key: 'tags', label: 'Tags · comma separated', type: 'list' },
+  ],
+  certifications: [
+    { key: 'name', label: 'Certification name', required: true },
+    { key: 'issuer', label: 'Issuer' },
+    { key: 'date', label: 'Date awarded' },
+    { key: 'expiry', label: 'Expiry' },
+    { key: 'credential_id', label: 'Credential ID' },
+    { key: 'credential_url', label: 'Credential URL' },
+  ],
+  publications: [
+    { key: 'title', label: 'Title', required: true },
+    { key: 'authors', label: 'Authors' },
+    { key: 'venue', label: 'Venue' },
+    { key: 'year', label: 'Year' },
+    { key: 'doi', label: 'DOI' },
+    { key: 'url', label: 'URL' },
+    { key: 'citation', label: 'Citation', type: 'long' },
+    { key: 'description', label: 'Description', type: 'long' },
+  ],
+  languages: [
+    { key: 'language', label: 'Language', required: true },
+    { key: 'proficiency', label: 'Proficiency' },
+  ],
+  references: [
+    { key: 'name', label: 'Name', required: true },
+    { key: 'company', label: 'Company' },
+    { key: 'role', label: 'Role' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'notes', label: 'Notes', type: 'long' },
+  ],
+  portfolio: [
+    { key: 'title', label: 'Title', required: true },
+    {
+      key: 'kind',
+      label: 'Type',
+      type: 'select',
+      options: [
+        'Project',
+        'Research',
+        'Publication',
+        'Website',
+        'Demo',
+        'Design',
+        'GitHub repository',
+      ],
+    },
+    { key: 'description', label: 'Description', type: 'long' },
+    { key: 'thumbnail', label: 'Thumbnail URL (optional)' },
+    { key: 'url', label: 'URL' },
+    { key: 'github', label: 'GitHub URL' },
+    { key: 'date', label: 'Date' },
+    { key: 'skills', label: 'Skills · comma separated', type: 'list' },
+    { key: 'tags', label: 'Tags · comma separated', type: 'list' },
+  ],
 }

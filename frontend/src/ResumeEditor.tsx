@@ -1,10 +1,30 @@
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronDown, Copy, Eye, EyeOff, FileText, GripVertical, LayoutPanelLeft, Minus, Pencil, Plus, Redo2, Settings2, Trash2, Undo2, X } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  Copy,
+  Eye,
+  EyeOff,
+  FileText,
+  GripVertical,
+  LayoutPanelLeft,
+  Minus,
+  Pencil,
+  Plus,
+  Redo2,
+  Settings2,
+  Trash2,
+  Undo2,
+  X,
+} from 'lucide-react'
 import { api } from './api'
 import { Drawer, ItemEditor } from './Profile'
 import { CareerItem, itemTitle, Kind, Personal, Profile } from './profile-types'
 import PaginatedPaper from './PaginatedPaper'
-import { Pagination } from './pagination'
+import { Pagination, paginateDocument } from './pagination'
 import SectionBuilder from './SectionBuilder'
 import BulletEditor from './BulletEditor'
 import TemplateGallery from './TemplateGallery'
@@ -17,56 +37,783 @@ import RichEditor from './RichEditor'
 import { Resume, ResumeItem, ResumeSection } from './resume-types'
 import { flushSave, startAutosave, useEditor } from './editor-store'
 
-export default function ResumeEditor({initial,onClose,onOpen}:{initial:Resume,onClose:()=>void,onOpen:(r:Resume)=>void}) {
-  const state=useEditor(),r=state.resume,change=state.change
-  const [selected,setSelected]=useState('header'),[zoom,setZoom]=useState(75),[preview,setPreview]=useState(false),[mobilePanel,setMobilePanel]=useState<'sections'|'properties'|null>(null)
-  const [match,setMatch]=useState(false)
-  const [ats,setAts]=useState(false)
-  const [history,setHistory]=useState(initial.open_panel==='versions')
-  const [layout,setLayout]=useState<Pagination|null>(null)
-  const [choosingTemplate,setChoosingTemplate]=useState(false)
-  const [bulletEditing,setBulletEditing]=useState<{sectionId:string,itemId:string}|null>(null)
-  const [editing,setEditing]=useState<{section:ResumeSection,item?:ResumeItem}|null>(null),[adding,setAdding]=useState(false),[customName,setCustomName]=useState(''),[source,setSource]=useState<Profile|null>(null),[tick,setTick]=useState(0)
-  useEffect(()=>{useEditor.getState().open(initial);const stop=startAutosave();const interval=setInterval(()=>setTick(t=>t+1),1000);return()=>{stop();clearInterval(interval)}},[initial.id])
-  useEffect(()=>{
-    const keys=(e:KeyboardEvent)=>{if(!(e.ctrlKey||e.metaKey))return;if(e.key.toLowerCase()==='s'){e.preventDefault();void flushSave().catch(()=>{})}if(e.key.toLowerCase()==='z' && !(e.target as HTMLElement).closest('input,textarea,[contenteditable=true]')){e.preventDefault();e.shiftKey?useEditor.getState().redo():useEditor.getState().undo()}}
-    const leaving=(e:BeforeUnloadEvent)=>{if(useEditor.getState().status!=='saved'){e.preventDefault()}}
-    window.addEventListener('keydown',keys);window.addEventListener('beforeunload',leaving);return()=>{window.removeEventListener('keydown',keys);window.removeEventListener('beforeunload',leaving)}
-  },[])
-  if(!r||r.id!==initial.id)return <div className="loading-state">Opening editor…</div>
-  const section=r.document.sections.find(s=>s.id===selected)
-  function updateSection(fn:(section:ResumeSection)=>void){change(next=>{const sec=next.document.sections.find(s=>s.id===selected);if(sec)fn(sec)})}
-  function moveSection(id:string,offset:number){change(next=>{const list=next.document.sections,index=list.findIndex(s=>s.id===id),target=index+offset;if(target>=0&&target<list.length){const [item]=list.splice(index,1);list.splice(target,0,item)}})}
-  async function close(){try{await flushSave();onClose()}catch{/* keep unsaved editor open */}}
-  const savedText=state.status==='saved'?`Saved ${Math.max(0,Math.floor((Date.now()-(state.savedAt||Date.now()))/1000))}s ago`:state.status==='saving'?'Saving…':state.status==='error'?'Save failed':'Unsaved changes'
-  return <div className={`editor-shell ${preview?'preview-only':''}`}>
-    <header className="editor-toolbar"><button className="icon-button back-button" aria-label="Back to resumes" onClick={close}><ArrowLeft size={19}/></button><span className="toolbar-divider"/><div className="editor-document-name"><input aria-label="Resume name" value={r.name} maxLength={150} onChange={e=>change(next=>{next.name=e.target.value})}/><span className={state.status==='error'?'error':''} role="status"><Check size={10}/>{savedText}</span></div><div className="editor-toolbar-actions"><button className="icon-button" aria-label="Undo" disabled={!state.past.length} onClick={state.undo}><Undo2 size={17}/></button><button className="icon-button" aria-label="Redo" disabled={!state.future.length} onClick={state.redo}><Redo2 size={17}/></button><span className="toolbar-divider"/><button className="button secondary" onClick={()=>setMatch(true)}>Job Match</button><button className="button secondary" onClick={()=>setAts(true)}>ATS Check</button><button className="button secondary" onClick={()=>setHistory(true)}>Versions</button><button className="button secondary" onClick={()=>setChoosingTemplate(true)}>Template</button><button className="button secondary" onClick={()=>{setSelected("design");setMobilePanel("properties")}}>Design</button><button className="button secondary" onClick={()=>setPreview(!preview)}><Eye size={14}/>{preview?'Edit resume':'Preview'}</button><button className="button primary" onClick={()=>void flushSave().catch(()=>{})}>Save</button><ExportMenu/></div></header>
-    {state.error&&<div className="editor-error" role="alert">{state.error} Your edits remain in this editor. <button onClick={()=>void flushSave().catch(()=>{})}>Retry save</button></div>}
-    <div className="mobile-editor-controls"><button onClick={()=>setMobilePanel(mobilePanel==='sections'?null:'sections')}><LayoutPanelLeft size={15}/>Sections</button><button onClick={()=>setMobilePanel(mobilePanel==='properties'?null:'properties')}><Settings2 size={15}/>Properties</button></div>
-    <div className="editor-workspace">
-      <aside className={`editor-sections ${mobilePanel==='sections'?'mobile-open':''}`}><div className="editor-panel-title"><span>DOCUMENT SECTIONS</span><FileText size={14}/></div><p className="editor-panel-note">Shape the story you want to tell.</p><button className={`fixed-section ${selected==='header'?'selected':''}`} onClick={()=>{setSelected('header');setMobilePanel(null)}}><span>01</span>Personal details</button><button className={`fixed-section ${selected==='summary'?'selected':''}`} onClick={()=>{setSelected('summary');setMobilePanel(null)}}><span>02</span>Summary</button><SectionBuilder sections={r.document.sections} selected={selected} onSelect={id=>{setSelected(id);setMobilePanel(null)}}/><button className="add-section-button" onClick={()=>setAdding(true)}><Plus size={14}/> Add custom section</button><div className="editor-tip"><span>YOUR CONTENT IS SAFE</span><p>Hidden sections stay in your document. Changes here never rewrite your Career Profile.</p></div></aside>
-      <section className="editor-canvas" aria-label="Live resume preview"><div className="canvas-topline"><span>{r.document.template} <span> / </span> {r.document.style.page_size}</span><span>LIVE PREVIEW <span className="status-dot"/></span></div><div className="pagination-status"><span>{layout?.pages.length||1} pages · {r.document.style.page_size}</span>{layout?.warnings.map(w=><p key={w}>{w}</p>)}{(layout?.pages.length||1)>1&&<button onClick={()=>change(next=>{const s=next.document.style;s.margin=Math.max(10,s.margin-2);s.section_spacing=Math.max(6,s.section_spacing-2);s.bullet_spacing=Math.max(1,s.bullet_spacing-1);s.font_size=Math.max(9.5,s.font_size-.5)})}>Fit to one page · adjust spacing</button>}</div><div className="paper-stage"><div className="paper-zoom" style={{zoom:zoom/100}}><PaginatedPaper onLayout={setLayout} document={r.document} selected={preview?undefined:selected} onSelect={preview?undefined:setSelected} onPersonalChange={preview?undefined:(key,value)=>change(next=>{(next.document.personal as unknown as Record<string,unknown>)[key]=value;if(key==='summary')next.document.summary_rich=null})}/></div></div><div className="preview-controls"><button aria-label="Zoom out" onClick={()=>setZoom(Math.max(25,zoom-25))}><Minus size={14}/></button><select aria-label="Preview zoom" value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[25,50,75,100,125].map(z=><option value={z} key={z}>{z}%</option>)}</select><button aria-label="Zoom in" onClick={()=>setZoom(Math.min(125,zoom+25))}><Plus size={14}/></button><span/><button onClick={()=>setZoom(Math.max(25,Math.min(100,Math.floor((document.querySelector('.editor-canvas')!.clientWidth-60)/8))))}>Fit width</button><button onClick={()=>setZoom(Math.max(25,Math.min(100,Math.floor((window.innerHeight-200)/11.23))))}>Fit page</button></div></section>
-      <aside className={`editor-properties ${mobilePanel==='properties'?'mobile-open':''}`}><div className="editor-panel-title"><span>{section?section.heading.toUpperCase():selected==='design'?'DESIGN & TYPOGRAPHY':selected==='header'?'PERSONAL DETAILS':'PROFESSIONAL SUMMARY'}</span><Settings2 size={14}/></div><div className="property-content">
-        {selected==='design'&&<StylePanel/>}
-        {selected==='header'&&<>{Object.keys(r.document.personal).filter(k=>k!=='hidden_fields'&&k!=='summary').map(key=><label className="field" key={key}><span>{key.replaceAll('_',' ')}</span><input value={String(r.document.personal[key as keyof Personal])} onChange={e=>change(next=>{(next.document.personal as unknown as Record<string,unknown>)[key]=e.target.value})}/>{key!=='full_name'&&<span className="visibility-check"><input type="checkbox" checked={!r.document.personal.hidden_fields.includes(key)} onChange={e=>change(next=>{next.document.personal.hidden_fields=e.target.checked?next.document.personal.hidden_fields.filter(k=>k!==key):[...next.document.personal.hidden_fields,key]})}/>Show on resume</span>}</label>)}</>}
-        {selected==='summary'&&<><p className="form-note">A concise introduction, grounded in your actual experience.</p><label className="field"><span>Professional summary</span><RichEditor value={r.document.summary_rich} text={r.document.personal.summary} onChange={(rich,text)=>change(next=>{next.document.summary_rich=rich;next.document.personal.summary=text})}/></label><label className="selection-row"><input type="checkbox" checked={!r.document.personal.hidden_fields.includes('summary')} onChange={e=>change(next=>{next.document.personal.hidden_fields=e.target.checked?next.document.personal.hidden_fields.filter(k=>k!=='summary'):[...next.document.personal.hidden_fields,'summary']})}/>Show summary</label></>}
-        {section&&<><label className="field"><span>Section heading</span><input value={section.heading} onChange={e=>updateSection(sec=>{sec.heading=e.target.value})}/></label><label className="selection-row"><input type="checkbox" checked={section.visible} onChange={e=>updateSection(sec=>{sec.visible=e.target.checked})}/>Show section</label>{section.kind==='skills'&&<><label className="field"><span>Columns</span><select value={section.columns} onChange={e=>updateSection(sec=>{sec.columns=Number(e.target.value)})}>{[1,2,3].map(n=><option key={n}>{n}</option>)}</select></label><label className="field"><span>Separator</span><select value={section.separator} onChange={e=>updateSection(sec=>{sec.separator=e.target.value})}><option value=" · ">Middle dot</option><option value=", ">Comma</option><option value=" | ">Pipe</option><option value="\n">New line</option></select></label></>}
-          <div className="property-subheading">CONTENT <span>{section.items.length} items</span></div>{section.items.map((item,index)=><div className="editor-item-card" key={item.id}><h4>{String(item.data.position||item.data.name||item.data.title||item.data.statement||item.data.language||'Item')}</h4><div>{["experience","projects"].includes(section.kind)&&<button className="text-action" onClick={()=>setBulletEditing({sectionId:section.id,itemId:item.id})}>Edit bullets</button>}<button className="icon-button" aria-label={`Edit item ${index+1}`} onClick={()=>setEditing({section,item})}><Pencil size={13}/></button><button className="icon-button" aria-label={`Move item ${index+1} up`} disabled={index===0} onClick={()=>updateSection(sec=>{const [current]=sec.items.splice(index,1);sec.items.splice(index-1,0,current)})}><ArrowUp size={13}/></button><button className="icon-button" aria-label={`Remove item ${index+1}`} onClick={()=>updateSection(sec=>{sec.items=sec.items.filter(i=>i.id!==item.id)})}><Trash2 size={13}/></button></div></div>)}<button className="button secondary" onClick={()=>setEditing({section})}><Plus size={13}/>Add content</button>{section.kind!=='custom'&&<button className="text-action" onClick={()=>api<Profile>('/profile').then(setSource).catch(e=>useEditor.setState({error:e.message}))}>Select from Career Profile</button>}{section.kind==='custom'&&<button className="text-action" onClick={()=>change(next=>{const copy=structuredClone(section);copy.id=crypto.randomUUID();copy.heading+= ' (copy)';next.document.sections.push(copy)})}><Copy size={13}/>Duplicate section</button>}</>}
-      </div></aside>
+export default function ResumeEditor({
+  initial,
+  onClose,
+  onOpen,
+}: {
+  initial: Resume
+  onClose: () => void
+  onOpen: (r: Resume) => void
+}) {
+  const state = useEditor(),
+    r = state.resume,
+    change = state.change
+  const [selected, setSelected] = useState('header'),
+    [zoom, setZoom] = useState(75),
+    [preview, setPreview] = useState(false),
+    [mobilePanel, setMobilePanel] = useState<'sections' | 'properties' | null>(null)
+  const [match, setMatch] = useState(false)
+  const [ats, setAts] = useState(false)
+  const [history, setHistory] = useState(initial.open_panel === 'versions')
+  const [fitNotice, setFitNotice] = useState('')
+  const [layout, setLayout] = useState<Pagination | null>(null)
+  const [choosingTemplate, setChoosingTemplate] = useState(false)
+  const [bulletEditing, setBulletEditing] = useState<{
+    sectionId: string
+    itemId: string
+  } | null>(null)
+  const [editing, setEditing] = useState<{
+      section: ResumeSection
+      item?: ResumeItem
+    } | null>(null),
+    [adding, setAdding] = useState(false),
+    [customName, setCustomName] = useState(''),
+    [source, setSource] = useState<Profile | null>(null),
+    [tick, setTick] = useState(0)
+  useEffect(() => {
+    useEditor.getState().open(initial)
+    const stop = startAutosave()
+    const interval = setInterval(() => setTick((t) => t + 1), 1000)
+    return () => {
+      stop()
+      clearInterval(interval)
+    }
+  }, [initial.id])
+  useEffect(() => {
+    const keys = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return
+      if (e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        void flushSave().catch(() => {})
+      }
+      if (
+        e.key.toLowerCase() === 'z' &&
+        !(e.target as HTMLElement).closest('input,textarea,[contenteditable=true]')
+      ) {
+        e.preventDefault()
+        e.shiftKey ? useEditor.getState().redo() : useEditor.getState().undo()
+      }
+    }
+    const leaving = (e: BeforeUnloadEvent) => {
+      if (useEditor.getState().status !== 'saved') {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', keys)
+    window.addEventListener('beforeunload', leaving)
+    return () => {
+      window.removeEventListener('keydown', keys)
+      window.removeEventListener('beforeunload', leaving)
+    }
+  }, [])
+  if (!r || r.id !== initial.id) return <div className="loading-state">Opening editor…</div>
+  const section = r.document.sections.find((s) => s.id === selected)
+  function updateSection(fn: (section: ResumeSection) => void) {
+    change((next) => {
+      const sec = next.document.sections.find((s) => s.id === selected)
+      if (sec) fn(sec)
+    })
+  }
+  function moveSection(id: string, offset: number) {
+    change((next) => {
+      const list = next.document.sections,
+        index = list.findIndex((s) => s.id === id),
+        target = index + offset
+      if (target >= 0 && target < list.length) {
+        const [item] = list.splice(index, 1)
+        list.splice(target, 0, item)
+      }
+    })
+  }
+  async function close() {
+    try {
+      await flushSave()
+      onClose()
+    } catch {
+      /* keep unsaved editor open */
+    }
+  }
+  const savedText =
+    state.status === 'saved'
+      ? `Saved ${Math.max(0, Math.floor((Date.now() - (state.savedAt || Date.now())) / 1000))}s ago`
+      : state.status === 'saving'
+        ? 'Saving…'
+        : state.status === 'error'
+          ? 'Save failed'
+          : 'Unsaved changes'
+  return (
+    <div className={`editor-shell ${preview ? 'preview-only' : ''}`}>
+      <header className="editor-toolbar">
+        <button className="icon-button back-button" aria-label="Back to resumes" onClick={close}>
+          <ArrowLeft size={19} />
+        </button>
+        <span className="toolbar-divider" />
+        <div className="editor-document-name">
+          <input
+            aria-label="Resume name"
+            value={r.name}
+            maxLength={150}
+            onChange={(e) =>
+              change((next) => {
+                next.name = e.target.value
+              })
+            }
+          />
+          <span className={state.status === 'error' ? 'error' : ''} role="status">
+            <Check size={10} />
+            {savedText}
+          </span>
+        </div>
+        <div className="editor-toolbar-actions">
+          <button
+            className="icon-button"
+            aria-label="Undo"
+            disabled={!state.past.length}
+            onClick={state.undo}
+          >
+            <Undo2 size={17} />
+          </button>
+          <button
+            className="icon-button"
+            aria-label="Redo"
+            disabled={!state.future.length}
+            onClick={state.redo}
+          >
+            <Redo2 size={17} />
+          </button>
+          <span className="toolbar-divider" />
+          <button className="button secondary" onClick={() => setMatch(true)}>
+            Job Match
+          </button>
+          <button className="button secondary" onClick={() => setAts(true)}>
+            ATS Check
+          </button>
+          <button className="button secondary" onClick={() => setHistory(true)}>
+            Versions
+          </button>
+          <button className="button secondary" onClick={() => setChoosingTemplate(true)}>
+            Template
+          </button>
+          <button
+            className="button secondary"
+            onClick={() => {
+              setSelected('design')
+              setMobilePanel('properties')
+            }}
+          >
+            Design
+          </button>
+          <button className="button secondary" onClick={() => setPreview(!preview)}>
+            <Eye size={14} />
+            {preview ? 'Edit resume' : 'Preview'}
+          </button>
+          <button className="button primary" onClick={() => void flushSave().catch(() => {})}>
+            Save
+          </button>
+          <ExportMenu />
+        </div>
+      </header>
+      {state.error && (
+        <div className="editor-error" role="alert">
+          {state.error} Your edits remain in this editor.{' '}
+          <button onClick={() => void flushSave().catch(() => {})}>Retry save</button>
+        </div>
+      )}
+      <div className="mobile-editor-controls">
+        <button onClick={() => setMobilePanel(mobilePanel === 'sections' ? null : 'sections')}>
+          <LayoutPanelLeft size={15} />
+          Sections
+        </button>
+        <button onClick={() => setMobilePanel(mobilePanel === 'properties' ? null : 'properties')}>
+          <Settings2 size={15} />
+          Properties
+        </button>
+      </div>
+      <div className="editor-workspace">
+        <aside className={`editor-sections ${mobilePanel === 'sections' ? 'mobile-open' : ''}`}>
+          <div className="editor-panel-title">
+            <span>DOCUMENT SECTIONS</span>
+            <FileText size={14} />
+          </div>
+          <p className="editor-panel-note">Shape the story you want to tell.</p>
+          <button
+            className={`fixed-section ${selected === 'header' ? 'selected' : ''}`}
+            onClick={() => {
+              setSelected('header')
+              setMobilePanel(null)
+            }}
+          >
+            <span>01</span>Personal details
+          </button>
+          <button
+            className={`fixed-section ${selected === 'summary' ? 'selected' : ''}`}
+            onClick={() => {
+              setSelected('summary')
+              setMobilePanel(null)
+            }}
+          >
+            <span>02</span>Summary
+          </button>
+          <SectionBuilder
+            sections={r.document.sections}
+            selected={selected}
+            onSelect={(id) => {
+              setSelected(id)
+              setMobilePanel(null)
+            }}
+          />
+          <button className="add-section-button" onClick={() => setAdding(true)}>
+            <Plus size={14} /> Add custom section
+          </button>
+          <div className="editor-tip">
+            <span>YOUR CONTENT IS SAFE</span>
+            <p>
+              Hidden sections stay in your document. Changes here never rewrite your Career Profile.
+            </p>
+          </div>
+        </aside>
+        <section className="editor-canvas" aria-label="Live resume preview">
+          <div className="canvas-topline">
+            <span>
+              {r.document.template} <span> / </span> {r.document.style.page_size}
+            </span>
+            <span>
+              LIVE PREVIEW <span className="status-dot" />
+            </span>
+          </div>
+          <div className="pagination-status">
+            <span>
+              {layout?.pages.length || 1} pages · {r.document.style.page_size}
+            </span>
+            {fitNotice && <p role="status">{fitNotice}</p>}
+            {layout?.warnings.map((w) => (
+              <p key={w}>{w}</p>
+            ))}
+            {(layout?.pages.length || 1) > 1 && (
+              <button
+                onClick={() =>
+                  change((next) => {
+                    const s = next.document.style
+                    let pages = layout?.pages.length || 2
+                    for (let attempt = 0; attempt < 8 && pages > 1; attempt++) {
+                      const previous = JSON.stringify(s)
+                      s.margin = Math.min(s.margin, Math.max(10, s.margin - 2))
+                      s.section_spacing = Math.min(
+                        s.section_spacing,
+                        Math.max(6, s.section_spacing - 2)
+                      )
+                      s.bullet_spacing = Math.min(
+                        s.bullet_spacing,
+                        Math.max(1, s.bullet_spacing - 1)
+                      )
+                      s.font_size = Math.min(s.font_size, Math.max(10, s.font_size - 0.25))
+                      s.line_height = Math.min(s.line_height, Math.max(1.2, s.line_height - 0.05))
+                      if (JSON.stringify(s) === previous) break
+                      pages = paginateDocument(next.document).pages.length
+                    }
+                    setFitNotice(
+                      pages === 1
+                        ? 'Fitted to one page. All content retained.'
+                        : `Readable spacing limits reached. Keep ${pages} pages or shorten your content; nothing was removed.`
+                    )
+                  })
+                }
+              >
+                Fit to one page · adjust spacing
+              </button>
+            )}
+          </div>
+          <div className="paper-stage">
+            <div className="paper-zoom" style={{ zoom: zoom / 100 }}>
+              <PaginatedPaper
+                onLayout={setLayout}
+                document={r.document}
+                selected={preview ? undefined : selected}
+                onSelect={preview ? undefined : setSelected}
+                onPersonalChange={
+                  preview
+                    ? undefined
+                    : (key, value) =>
+                        change((next) => {
+                          ;(next.document.personal as unknown as Record<string, unknown>)[key] =
+                            value
+                          if (key === 'summary') next.document.summary_rich = null
+                        })
+                }
+              />
+            </div>
+          </div>
+          <div className="preview-controls">
+            <button aria-label="Zoom out" onClick={() => setZoom(Math.max(25, zoom - 25))}>
+              <Minus size={14} />
+            </button>
+            <select
+              aria-label="Preview zoom"
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+            >
+              {[25, 50, 75, 100, 125].map((z) => (
+                <option value={z} key={z}>
+                  {z}%
+                </option>
+              ))}
+            </select>
+            <button aria-label="Zoom in" onClick={() => setZoom(Math.min(125, zoom + 25))}>
+              <Plus size={14} />
+            </button>
+            <span />
+            <button
+              onClick={() =>
+                setZoom(
+                  Math.max(
+                    25,
+                    Math.min(
+                      100,
+                      Math.floor((document.querySelector('.editor-canvas')!.clientWidth - 60) / 8)
+                    )
+                  )
+                )
+              }
+            >
+              Fit width
+            </button>
+            <button
+              onClick={() =>
+                setZoom(Math.max(25, Math.min(100, Math.floor((window.innerHeight - 200) / 11.23))))
+              }
+            >
+              Fit page
+            </button>
+          </div>
+        </section>
+        <aside className={`editor-properties ${mobilePanel === 'properties' ? 'mobile-open' : ''}`}>
+          <div className="editor-panel-title">
+            <span>
+              {section
+                ? section.heading.toUpperCase()
+                : selected === 'design'
+                  ? 'DESIGN & TYPOGRAPHY'
+                  : selected === 'header'
+                    ? 'PERSONAL DETAILS'
+                    : 'PROFESSIONAL SUMMARY'}
+            </span>
+            <Settings2 size={14} />
+          </div>
+          <div className="property-content">
+            {selected === 'design' && <StylePanel />}
+            {selected === 'header' && (
+              <>
+                {Object.keys(r.document.personal)
+                  .filter((k) => k !== 'hidden_fields' && k !== 'summary')
+                  .map((key) => (
+                    <label className="field" key={key}>
+                      <span>{key.replaceAll('_', ' ')}</span>
+                      <input
+                        value={String(r.document.personal[key as keyof Personal])}
+                        onChange={(e) =>
+                          change((next) => {
+                            ;(next.document.personal as unknown as Record<string, unknown>)[key] =
+                              e.target.value
+                          })
+                        }
+                      />
+                      {key !== 'full_name' && (
+                        <span className="visibility-check">
+                          <input
+                            type="checkbox"
+                            checked={!r.document.personal.hidden_fields.includes(key)}
+                            onChange={(e) =>
+                              change((next) => {
+                                next.document.personal.hidden_fields = e.target.checked
+                                  ? next.document.personal.hidden_fields.filter((k) => k !== key)
+                                  : [...next.document.personal.hidden_fields, key]
+                              })
+                            }
+                          />
+                          Show on resume
+                        </span>
+                      )}
+                    </label>
+                  ))}
+              </>
+            )}
+            {selected === 'summary' && (
+              <>
+                <p className="form-note">
+                  A concise introduction, grounded in your actual experience.
+                </p>
+                <label className="field">
+                  <span>Professional summary</span>
+                  <RichEditor
+                    value={r.document.summary_rich}
+                    text={r.document.personal.summary}
+                    onChange={(rich, text) =>
+                      change((next) => {
+                        next.document.summary_rich = rich
+                        next.document.personal.summary = text
+                      })
+                    }
+                  />
+                </label>
+                <label className="selection-row">
+                  <input
+                    type="checkbox"
+                    checked={!r.document.personal.hidden_fields.includes('summary')}
+                    onChange={(e) =>
+                      change((next) => {
+                        next.document.personal.hidden_fields = e.target.checked
+                          ? next.document.personal.hidden_fields.filter((k) => k !== 'summary')
+                          : [...next.document.personal.hidden_fields, 'summary']
+                      })
+                    }
+                  />
+                  Show summary
+                </label>
+              </>
+            )}
+            {section && (
+              <>
+                <label className="field">
+                  <span>Section heading</span>
+                  <input
+                    value={section.heading}
+                    onChange={(e) =>
+                      updateSection((sec) => {
+                        sec.heading = e.target.value
+                      })
+                    }
+                  />
+                </label>
+                <label className="selection-row">
+                  <input
+                    type="checkbox"
+                    checked={section.visible}
+                    onChange={(e) =>
+                      updateSection((sec) => {
+                        sec.visible = e.target.checked
+                      })
+                    }
+                  />
+                  Show section
+                </label>
+                {section.kind === 'skills' && (
+                  <>
+                    <label className="field">
+                      <span>Columns</span>
+                      <select
+                        value={section.columns}
+                        onChange={(e) =>
+                          updateSection((sec) => {
+                            sec.columns = Number(e.target.value)
+                          })
+                        }
+                      >
+                        {[1, 2, 3].map((n) => (
+                          <option key={n}>{n}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="field">
+                      <span>Separator</span>
+                      <select
+                        value={section.separator}
+                        onChange={(e) =>
+                          updateSection((sec) => {
+                            sec.separator = e.target.value
+                          })
+                        }
+                      >
+                        <option value=" · ">Middle dot</option>
+                        <option value=", ">Comma</option>
+                        <option value=" | ">Pipe</option>
+                        <option value="\n">New line</option>
+                      </select>
+                    </label>
+                  </>
+                )}
+                <div className="property-subheading">
+                  CONTENT <span>{section.items.length} items</span>
+                </div>
+                {section.items.map((item, index) => (
+                  <div className="editor-item-card" key={item.id}>
+                    <h4>
+                      {String(
+                        item.data.position ||
+                          item.data.name ||
+                          item.data.title ||
+                          item.data.statement ||
+                          item.data.language ||
+                          'Item'
+                      )}
+                    </h4>
+                    <div>
+                      {['experience', 'projects'].includes(section.kind) && (
+                        <button
+                          className="text-action"
+                          onClick={() =>
+                            setBulletEditing({
+                              sectionId: section.id,
+                              itemId: item.id,
+                            })
+                          }
+                        >
+                          Edit bullets
+                        </button>
+                      )}
+                      <button
+                        className="icon-button"
+                        aria-label={`Edit item ${index + 1}`}
+                        onClick={() => setEditing({ section, item })}
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        className="icon-button"
+                        aria-label={`Move item ${index + 1} up`}
+                        disabled={index === 0}
+                        onClick={() =>
+                          updateSection((sec) => {
+                            const [current] = sec.items.splice(index, 1)
+                            sec.items.splice(index - 1, 0, current)
+                          })
+                        }
+                      >
+                        <ArrowUp size={13} />
+                      </button>
+                      <button
+                        className="icon-button"
+                        aria-label={`Remove item ${index + 1}`}
+                        onClick={() =>
+                          updateSection((sec) => {
+                            sec.items = sec.items.filter((i) => i.id !== item.id)
+                          })
+                        }
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button className="button secondary" onClick={() => setEditing({ section })}>
+                  <Plus size={13} />
+                  Add content
+                </button>
+                {section.kind !== 'custom' && (
+                  <button
+                    className="text-action"
+                    onClick={() =>
+                      api<Profile>('/profile')
+                        .then(setSource)
+                        .catch((e) => useEditor.setState({ error: e.message }))
+                    }
+                  >
+                    Select from Career Profile
+                  </button>
+                )}
+                {section.kind === 'custom' && (
+                  <button
+                    className="text-action"
+                    onClick={() =>
+                      change((next) => {
+                        const copy = structuredClone(section)
+                        copy.id = crypto.randomUUID()
+                        copy.heading += ' (copy)'
+                        next.document.sections.push(copy)
+                      })
+                    }
+                  >
+                    <Copy size={13} />
+                    Duplicate section
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </aside>
+      </div>
+      {match && (
+        <JobMatch
+          onClose={() => setMatch(false)}
+          onCreated={(r) => {
+            setMatch(false)
+            onOpen(r)
+          }}
+        />
+      )}
+      {ats && <ATSPanel onClose={() => setAts(false)} />}
+      {history && <VersionHistory onClose={() => setHistory(false)} />}
+      {choosingTemplate && (
+        <Drawer title="Choose your template" wide onClose={() => setChoosingTemplate(false)}>
+          <TemplateGallery
+            document={r.document}
+            onChoose={(name) => {
+              change((next) => {
+                next.document.template = name
+              })
+              setChoosingTemplate(false)
+            }}
+          />
+        </Drawer>
+      )}
+      {bulletEditing && <BulletEditor {...bulletEditing} onClose={() => setBulletEditing(null)} />}
+      {adding && (
+        <Drawer title="Make room for your story" onClose={() => setAdding(false)}>
+          <div className="drawer-form">
+            <p className="form-note">
+              Publications, research, awards, leadership, patents, open source, teaching—or
+              something uniquely yours.
+            </p>
+            <label className="field">
+              <span>Section name</span>
+              <input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                maxLength={100}
+              />
+            </label>
+            <button
+              className="button primary"
+              disabled={!customName.trim()}
+              onClick={() => {
+                const id = crypto.randomUUID()
+                change((next) => {
+                  next.document.sections.push({
+                    id,
+                    kind: 'custom',
+                    heading: customName.trim(),
+                    visible: true,
+                    columns: 1,
+                    separator: ' · ',
+                    items: [],
+                  })
+                })
+                setSelected(id)
+                setAdding(false)
+                setCustomName('')
+              }}
+            >
+              Add section
+            </button>
+          </div>
+        </Drawer>
+      )}
+      {editing && editing.section.kind !== 'custom' && (
+        <ItemEditor
+          kind={editing.section.kind as Kind}
+          item={
+            editing.item
+              ? {
+                  ...editing.item,
+                  kind: editing.item.kind as Kind,
+                  updated_at: '',
+                }
+              : undefined
+          }
+          onClose={() => setEditing(null)}
+          onSaved={() => {}}
+          saveLocal={(data) =>
+            change((next) => {
+              const sec = next.document.sections.find((s) => s.id === editing.section.id)!
+              if (editing.item) sec.items.find((i) => i.id === editing.item!.id)!.data = data
+              else
+                sec.items.push({
+                  id: crypto.randomUUID(),
+                  source_id: null,
+                  kind: sec.kind,
+                  data,
+                })
+              sec.visible = true
+            })
+          }
+        />
+      )}
+      {editing && editing.section.kind === 'custom' && (
+        <CustomItemEditor
+          item={editing.item}
+          onClose={() => setEditing(null)}
+          onSave={(data) => {
+            change((next) => {
+              const sec = next.document.sections.find((s) => s.id === editing.section.id)!
+              if (editing.item) sec.items.find((i) => i.id === editing.item!.id)!.data = data
+              else
+                sec.items.push({
+                  id: crypto.randomUUID(),
+                  source_id: null,
+                  kind: 'custom',
+                  data,
+                })
+            })
+            setEditing(null)
+          }}
+        />
+      )}
+      {source && section && (
+        <Drawer title={`Add ${section.heading} from profile`} onClose={() => setSource(null)}>
+          <div className="drawer-form">
+            {source.items
+              .filter((i) => i.kind === section.kind)
+              .map((item) => (
+                <button
+                  className="source-item"
+                  key={item.id}
+                  onClick={() => {
+                    updateSection((sec) => {
+                      sec.items.push({
+                        id: crypto.randomUUID(),
+                        source_id: item.id,
+                        kind: item.kind,
+                        data: structuredClone(item.data),
+                      })
+                      sec.visible = true
+                    })
+                    setSource(null)
+                  }}
+                >
+                  <Plus size={14} />
+                  {itemTitle(item)}
+                </button>
+              ))}
+            {!source.items.some((i) => i.kind === section.kind) && (
+              <p>No matching profile items yet.</p>
+            )}
+          </div>
+        </Drawer>
+      )}
     </div>
-    {match&&<JobMatch onClose={()=>setMatch(false)} onCreated={r=>{setMatch(false);onOpen(r)}}/>}
-    {ats&&<ATSPanel onClose={()=>setAts(false)}/>}
-    {history&&<VersionHistory onClose={()=>setHistory(false)}/>}
-    {choosingTemplate&&<Drawer title="Choose your template" wide onClose={()=>setChoosingTemplate(false)}><TemplateGallery document={r.document} onChoose={name=>{change(next=>{next.document.template=name});setChoosingTemplate(false)}}/></Drawer>}
-    {bulletEditing&&<BulletEditor {...bulletEditing} onClose={()=>setBulletEditing(null)}/>}
-    {adding&&<Drawer title="Make room for your story" onClose={()=>setAdding(false)}><div className="drawer-form"><p className="form-note">Publications, research, awards, leadership, patents, open source, teaching—or something uniquely yours.</p><label className="field"><span>Section name</span><input value={customName} onChange={e=>setCustomName(e.target.value)} maxLength={100}/></label><button className="button primary" disabled={!customName.trim()} onClick={()=>{const id=crypto.randomUUID();change(next=>{next.document.sections.push({id,kind:'custom',heading:customName.trim(),visible:true,columns:1,separator:' · ',items:[]})});setSelected(id);setAdding(false);setCustomName('')}}>Add section</button></div></Drawer>}
-    {editing&&editing.section.kind!=='custom'&&<ItemEditor kind={editing.section.kind as Kind} item={editing.item?{...editing.item,kind:editing.item.kind as Kind,updated_at:''}:undefined} onClose={()=>setEditing(null)} onSaved={()=>{}} saveLocal={data=>change(next=>{const sec=next.document.sections.find(s=>s.id===editing.section.id)!;if(editing.item)sec.items.find(i=>i.id===editing.item!.id)!.data=data;else sec.items.push({id:crypto.randomUUID(),source_id:null,kind:sec.kind,data});sec.visible=true})}/>}
-    {editing&&editing.section.kind==='custom'&&<CustomItemEditor item={editing.item} onClose={()=>setEditing(null)} onSave={data=>{change(next=>{const sec=next.document.sections.find(s=>s.id===editing.section.id)!;if(editing.item)sec.items.find(i=>i.id===editing.item!.id)!.data=data;else sec.items.push({id:crypto.randomUUID(),source_id:null,kind:'custom',data})});setEditing(null)}}/>}
-    {source&&section&&<Drawer title={`Add ${section.heading} from profile`} onClose={()=>setSource(null)}><div className="drawer-form">{source.items.filter(i=>i.kind===section.kind).map(item=><button className="source-item" key={item.id} onClick={()=>{updateSection(sec=>{sec.items.push({id:crypto.randomUUID(),source_id:item.id,kind:item.kind,data:structuredClone(item.data)});sec.visible=true});setSource(null)}}><Plus size={14}/>{itemTitle(item)}</button>)}{!source.items.some(i=>i.kind===section.kind)&&<p>No matching profile items yet.</p>}</div></Drawer>}
-  </div>
+  )
 }
 
-function CustomItemEditor({item,onSave,onClose}:{item?:ResumeItem,onSave:(data:CareerItem['data'])=>void,onClose:()=>void}) {
-  const [title,setTitle]=useState(String(item?.data.title||'')),[description,setDescription]=useState(String(item?.data.description||''))
-  return <Drawer title="Custom content" onClose={onClose}><form className="drawer-form" onSubmit={e=>{e.preventDefault();onSave({title,description})}}><label className="field"><span>Title</span><input required value={title} onChange={e=>setTitle(e.target.value)}/></label><label className="field"><span>Description</span><textarea rows={8} value={description} onChange={e=>setDescription(e.target.value)}/></label><button className="button primary">Save content</button></form></Drawer>
+function CustomItemEditor({
+  item,
+  onSave,
+  onClose,
+}: {
+  item?: ResumeItem
+  onSave: (data: CareerItem['data']) => void
+  onClose: () => void
+}) {
+  const [title, setTitle] = useState(String(item?.data.title || '')),
+    [description, setDescription] = useState(String(item?.data.description || ''))
+  return (
+    <Drawer title="Custom content" onClose={onClose}>
+      <form
+        className="drawer-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          onSave({ title, description })
+        }}
+      >
+        <label className="field">
+          <span>Title</span>
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} />
+        </label>
+        <label className="field">
+          <span>Description</span>
+          <textarea rows={8} value={description} onChange={(e) => setDescription(e.target.value)} />
+        </label>
+        <button className="button primary">Save content</button>
+      </form>
+    </Drawer>
+  )
 }

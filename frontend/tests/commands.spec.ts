@@ -1,2 +1,21 @@
-import {test,expect} from '@playwright/test'
-test('Ctrl K keyboard commands and global results',async({page})=>{await page.goto('/');await page.keyboard.press('Control+k');let d=page.getByRole('dialog');await expect(d.getByRole('textbox',{name:'Search workspace and commands'})).toBeFocused();await d.getByRole('textbox').fill('Create Resume');await page.keyboard.press('Enter');await expect(page.getByRole('dialog').getByRole('textbox',{name:'Resume name *'})).toBeVisible();await page.keyboard.press('Escape');await page.keyboard.press('Control+k');d=page.getByRole('dialog');await d.getByRole('textbox').fill('Python');await expect(d.getByRole('button',{name:'Python skills'})).toBeVisible();await d.getByRole('button',{name:'Python skills'}).click();await expect(page.getByRole('dialog').getByRole('textbox',{name:'Skill name *'})).toHaveValue('Python')})
+import { test, expect } from './fixtures'
+test('Ctrl K keyboard commands and global results', async ({ page }) => {
+  await page.goto('/')
+  await page.keyboard.press('Control+k')
+  let d = page.getByRole('dialog')
+  await expect(d.getByRole('textbox', { name: 'Search workspace and commands' })).toBeFocused()
+  await d.getByRole('textbox').fill('Create Resume')
+  await page.keyboard.press('Enter')
+  await expect(
+    page.getByRole('dialog').getByRole('textbox', { name: 'Resume name *' })
+  ).toBeVisible()
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Control+k')
+  d = page.getByRole('dialog')
+  await d.getByRole('textbox').fill('Python')
+  await expect(d.getByRole('button', { name: 'Python skills' })).toBeVisible()
+  await d.getByRole('button', { name: 'Python skills' }).click()
+  await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Skill name *' })).toHaveValue(
+    'Python'
+  )
+})

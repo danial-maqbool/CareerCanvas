@@ -1,32 +1,281 @@
-import { CSSProperties,useEffect,useRef } from 'react'
+import { CSSProperties, useEffect, useRef } from 'react'
 import { RichNode, ResumeDocument, ResumeItem } from './resume-types'
 
-export function RichContent({node}:{node:RichNode}) {
- const children=node.content?.map((n,i)=><RichContent node={n} key={i}/>);if(node.type==='text'){let value:React.ReactNode=node.text;for(const mark of node.marks||[])value=mark.type==='bold'?<strong>{value}</strong>:<em>{value}</em>;return <>{value}</>}if(node.type==='bulletList')return <ul>{children}</ul>;if(node.type==='orderedList')return <ol>{children}</ol>;if(node.type==='listItem')return <li>{children}</li>;if(node.type==='paragraph')return <p>{children}</p>;if(node.type==='hardBreak')return <br/>;return <>{children}</>
+export function RichContent({ node }: { node: RichNode }) {
+  const children = node.content?.map((n, i) => <RichContent node={n} key={i} />)
+  if (node.type === 'text') {
+    let value: React.ReactNode = node.text
+    for (const mark of node.marks || [])
+      value = mark.type === 'bold' ? <strong>{value}</strong> : <em>{value}</em>
+    return <>{value}</>
+  }
+  if (node.type === 'bulletList') return <ul>{children}</ul>
+  if (node.type === 'orderedList') return <ol>{children}</ol>
+  if (node.type === 'listItem') return <li>{children}</li>
+  if (node.type === 'paragraph') return <p>{children}</p>
+  if (node.type === 'hardBreak') return <br />
+  return <>{children}</>
 }
 
-export function safeLink(value: unknown) { return typeof value === 'string' && /^https?:\/\//i.test(value) ? value : undefined }
-export function PaperItem({ item, dateStyle='original' }: { item: ResumeItem, dateStyle?:string }) {
+export function safeLink(value: unknown) {
+  return typeof value === 'string' && /^https?:\/\//i.test(value) ? value : undefined
+}
+export function PaperItem({
+  item,
+  dateStyle = 'original',
+}: {
+  item: ResumeItem
+  dateStyle?: string
+}) {
   const d = item.data
-  const title = String(d.position || d.name || d.title || d.statement || d.language || d.institution || '')
+  const title = String(
+    d.position || d.name || d.title || d.statement || d.language || d.institution || ''
+  )
   const subtitle = String(d.company || d.issuer || d.venue || d.role || '')
-  const formatDate=(value:unknown)=>{const text=String(value||'');if(dateStyle==='original'||!/^\d{4}-\d{2}(-\d{2})?$/.test(text))return text;const date=new Date(text.slice(0,7)+'-01T00:00:00Z');return Number.isNaN(date.getTime())?text:date.toLocaleDateString('en-US',{month:dateStyle==='long'?'long':'short',year:'numeric',timeZone:'UTC'})}
-  const date = formatDate(d.start_date || d.date || d.year) + (d.current ? ' — Present' : d.end_date ? ` — ${formatDate(d.end_date)}` : '')
-  const bullets = (d.bullets || []) as {id:string,text:string}[]
-  return <div className="resume-item" data-item-id={item.id}><div className="resume-item-heading"><strong>{title}</strong><span className="resume-date">{date}</span></div>{subtitle && <div className="resume-subtitle">{subtitle}{d.location ? ` · ${d.location}` : ''}</div>}{d.degree && <div>{String(d.degree)}{d.field ? `, ${d.field}` : ''}{d.gpa ? ` · GPA ${d.gpa}` : ''}</div>}{d.authors && <p>{String(d.authors)}</p>}{d.description && <p>{String(d.description)}</p>}{bullets.length > 0 && <ul>{bullets.map(b => <li key={b.id}>{b.text}</li>)}</ul>}{(d.technologies as string[] | undefined)?.length ? <div className="resume-technologies">{(d.technologies as string[]).join(' · ')}</div> : null}{d.proficiency && <span>{String(d.proficiency)}</span>}{safeLink(d.url || d.credential_url) && <a href={safeLink(d.url || d.credential_url)}>{String(d.url || d.credential_url)}</a>}{(['courses','honors'] as const).map(key=>Array.isArray(d[key])&&(d[key] as string[]).length>0?<p key={key} className="resume-technologies">{key[0].toUpperCase()+key.slice(1)}: {(d[key] as string[]).join(', ')}</p>:null)}{d.citation&&<p>{String(d.citation)}</p>}{d.doi&&<p>DOI: {String(d.doi)}</p>}{d.credential_id&&<p className="resume-technologies">Credential ID: {String(d.credential_id)}</p>}{item.kind==='references'&&<p>{String(d.email||'')} {String(d.phone||'')}</p>}{safeLink(d.github) && <a href={safeLink(d.github)}>GitHub</a>}</div>
+  const formatDate = (value: unknown) => {
+    const text = String(value || '')
+    if (dateStyle === 'original' || !/^\d{4}-\d{2}(-\d{2})?$/.test(text)) return text
+    const date = new Date(text.slice(0, 7) + '-01T00:00:00Z')
+    return Number.isNaN(date.getTime())
+      ? text
+      : date.toLocaleDateString('en-US', {
+          month: dateStyle === 'long' ? 'long' : 'short',
+          year: 'numeric',
+          timeZone: 'UTC',
+        })
+  }
+  const date =
+    formatDate(d.start_date || d.date || d.year) +
+    (d.current ? ' — Present' : d.end_date ? ` — ${formatDate(d.end_date)}` : '')
+  const bullets = (d.bullets || []) as { id: string; text: string }[]
+  return (
+    <div className="resume-item" data-item-id={item.id}>
+      <div className="resume-item-heading">
+        <strong>{title}</strong>
+        <span className="resume-date">{date}</span>
+      </div>
+      {subtitle && (
+        <div className="resume-subtitle">
+          {subtitle}
+          {d.location ? ` · ${d.location}` : ''}
+        </div>
+      )}
+      {d.degree && (
+        <div>
+          {String(d.degree)}
+          {d.field ? `, ${d.field}` : ''}
+          {d.gpa ? ` · GPA ${d.gpa}` : ''}
+        </div>
+      )}
+      {d.authors && <p>{String(d.authors)}</p>}
+      {d.description && <p>{String(d.description)}</p>}
+      {bullets.length > 0 && (
+        <ul>
+          {bullets.map((b) => (
+            <li key={b.id}>{b.text}</li>
+          ))}
+        </ul>
+      )}
+      {(d.technologies as string[] | undefined)?.length ? (
+        <div className="resume-technologies">{(d.technologies as string[]).join(' · ')}</div>
+      ) : null}
+      {d.proficiency && <span>{String(d.proficiency)}</span>}
+      {safeLink(d.url || d.credential_url) && (
+        <a href={safeLink(d.url || d.credential_url)}>{String(d.url || d.credential_url)}</a>
+      )}
+      {(['courses', 'honors'] as const).map((key) =>
+        Array.isArray(d[key]) && (d[key] as string[]).length > 0 ? (
+          <p key={key} className="resume-technologies">
+            {key[0].toUpperCase() + key.slice(1)}: {(d[key] as string[]).join(', ')}
+          </p>
+        ) : null
+      )}
+      {d.citation && <p>{String(d.citation)}</p>}
+      {d.doi && <p>DOI: {String(d.doi)}</p>}
+      {d.credential_id && (
+        <p className="resume-technologies">Credential ID: {String(d.credential_id)}</p>
+      )}
+      {item.kind === 'references' && (
+        <p>
+          {String(d.email || '')} {String(d.phone || '')}
+        </p>
+      )}
+      {safeLink(d.github) && <a href={safeLink(d.github)}>GitHub</a>}
+    </div>
+  )
 }
 
-export default function ResumePaper({document:doc, onSelect, onPersonalChange, selected, showHeader=true, showSummary=true}: {showHeader?:boolean,showSummary?:boolean,document:ResumeDocument, onSelect?:(id:string)=>void, onPersonalChange?:(key:string,value:string)=>void, selected?:string}) {
-  const p = doc.personal, s = doc.style
-  const visible = (key:string) => !p.hidden_fields.includes(key)
-  const style = {'--resume-accent':s.accent,'--resume-secondary':s.secondary,'--resume-text':s.text,'--resume-section-gap':`${s.section_spacing}px`,'--resume-bullet-gap':`${s.bullet_spacing}px`,fontFamily:s.font === 'System Sans' ? 'Arial, sans-serif' : s.font,fontSize:`${s.font_size}pt`,lineHeight:s.line_height,padding:`${s.margin}mm`,width:doc.style.page_size === 'A4' ? '210mm' : '215.9mm',minHeight:doc.style.page_size === 'A4' ? '297mm' : '279.4mm'} as CSSProperties
-  return <article className={`resume-paper template-${doc.template.toLowerCase().replaceAll(' ','-')} headings-${s.heading_style}`} style={style}>
-    {showHeader&&<header className={`resume-header ${selected === 'header' ? 'paper-selected' : ''}`} style={{textAlign:s.alignment}} onClick={() => onSelect?.('header')}><InlineText as="h1" value={p.full_name||'Your name'} label="Edit full name" onChange={onPersonalChange?v=>onPersonalChange('full_name',v):undefined}/>{visible('professional_title') && <InlineText as="div" className="resume-title" value={p.professional_title} label="Edit professional title" onChange={onPersonalChange?v=>onPersonalChange('professional_title',v):undefined}/>}<div className="resume-contact">{visible('email') && p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}{visible('phone') && p.phone && <span>{p.phone}</span>}{visible('city') && p.city && <span>{p.city}{visible('country') && p.country ? `, ${p.country}` : ''}</span>}{(['linkedin','github','portfolio','website'] as const).filter(key => visible(key) && safeLink(p[key])).map(key => <a key={key} href={p[key]}>{key === 'linkedin' ? 'LinkedIn' : key === 'github' ? 'GitHub' : key === 'portfolio' ? 'Portfolio' : 'Website'}</a>)}</div></header>}
-    {showSummary&&visible('summary') && p.summary && <section className={`resume-section ${selected === 'summary' ? 'paper-selected' : ''}`} onClick={() => onSelect?.('summary')}><h2>Professional Summary</h2>{doc.summary_rich?<div><RichContent node={doc.summary_rich}/></div>:<InlineText as="p" value={p.summary} label="Edit summary" onChange={onPersonalChange?v=>onPersonalChange('summary',v):undefined}/>}</section>}
-    <div className="resume-body">{doc.sections.filter(section => section.visible).map(section => <section className={`resume-section section-${section.kind} ${selected === section.id ? 'paper-selected' : ''}`} key={section.id} data-section-id={section.id} onClick={() => onSelect?.(section.id)}><h2>{section.heading}</h2>{section.kind === 'skills' ? <div className="resume-skills" style={{columns:section.columns}}>{section.items.map(i => String(i.data.name)).join(section.separator)}</div> : section.items.map(item => <PaperItem key={item.id} item={item} dateStyle={s.date_style}/>)}</section>)}</div>
-  </article>
+export default function ResumePaper({
+  document: doc,
+  onSelect,
+  onPersonalChange,
+  selected,
+  showHeader = true,
+  showSummary = true,
+}: {
+  showHeader?: boolean
+  showSummary?: boolean
+  document: ResumeDocument
+  onSelect?: (id: string) => void
+  onPersonalChange?: (key: string, value: string) => void
+  selected?: string
+}) {
+  const p = doc.personal,
+    s = doc.style
+  const visible = (key: string) => !p.hidden_fields.includes(key)
+  const style = {
+    '--resume-accent': s.accent,
+    '--resume-secondary': s.secondary,
+    '--resume-text': s.text,
+    '--resume-section-gap': `${s.section_spacing}px`,
+    '--resume-bullet-gap': `${s.bullet_spacing}px`,
+    fontFamily: s.font === 'System Sans' ? 'Arial, sans-serif' : s.font,
+    fontSize: `${s.font_size}pt`,
+    lineHeight: s.line_height,
+    padding: `${s.margin}mm`,
+    width: doc.style.page_size === 'A4' ? '210mm' : '215.9mm',
+    minHeight: doc.style.page_size === 'A4' ? '297mm' : '279.4mm',
+  } as CSSProperties
+  return (
+    <article
+      className={`resume-paper template-${doc.template.toLowerCase().replaceAll(' ', '-')} headings-${s.heading_style}`}
+      style={style}
+    >
+      {showHeader && (
+        <header
+          className={`resume-header ${selected === 'header' ? 'paper-selected' : ''}`}
+          style={{ textAlign: s.alignment }}
+          onClick={() => onSelect?.('header')}
+        >
+          <InlineText
+            as="h1"
+            value={p.full_name || 'Your name'}
+            label="Edit full name"
+            onChange={onPersonalChange ? (v) => onPersonalChange('full_name', v) : undefined}
+          />
+          {visible('professional_title') && (
+            <InlineText
+              as="div"
+              className="resume-title"
+              value={p.professional_title}
+              label="Edit professional title"
+              onChange={
+                onPersonalChange ? (v) => onPersonalChange('professional_title', v) : undefined
+              }
+            />
+          )}
+          <div className="resume-contact">
+            {visible('email') && p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}
+            {visible('phone') && p.phone && <span>{p.phone}</span>}
+            {visible('city') && p.city && (
+              <span>
+                {p.city}
+                {visible('country') && p.country ? `, ${p.country}` : ''}
+              </span>
+            )}
+            {(['linkedin', 'github', 'portfolio', 'website'] as const)
+              .filter((key) => visible(key) && safeLink(p[key]))
+              .map((key) => (
+                <a key={key} href={p[key]}>
+                  {key === 'linkedin'
+                    ? 'LinkedIn'
+                    : key === 'github'
+                      ? 'GitHub'
+                      : key === 'portfolio'
+                        ? 'Portfolio'
+                        : 'Website'}
+                </a>
+              ))}
+          </div>
+        </header>
+      )}
+      {showSummary && visible('summary') && p.summary && (
+        <section
+          className={`resume-section ${selected === 'summary' ? 'paper-selected' : ''}`}
+          onClick={() => onSelect?.('summary')}
+        >
+          <h2>Professional Summary</h2>
+          {doc.summary_rich ? (
+            <div>
+              <RichContent node={doc.summary_rich} />
+            </div>
+          ) : (
+            <InlineText
+              as="p"
+              value={p.summary}
+              label="Edit summary"
+              onChange={onPersonalChange ? (v) => onPersonalChange('summary', v) : undefined}
+            />
+          )}
+        </section>
+      )}
+      <div className="resume-body">
+        {doc.sections
+          .filter((section) => section.visible)
+          .map((section) => (
+            <section
+              className={`resume-section section-${section.kind} ${selected === section.id ? 'paper-selected' : ''}`}
+              key={section.id}
+              data-section-id={section.id}
+              onClick={() => onSelect?.(section.id)}
+            >
+              <h2>{section.heading}</h2>
+              {section.kind === 'skills' ? (
+                <div className="resume-skills" style={{ columns: section.columns }}>
+                  {section.items.map((i) => String(i.data.name)).join(section.separator)}
+                </div>
+              ) : (
+                section.items.map((item) => (
+                  <PaperItem key={item.id} item={item} dateStyle={s.date_style} />
+                ))
+              )}
+            </section>
+          ))}
+      </div>
+    </article>
+  )
 }
 
-function InlineText({as:Tag,value,label,onChange,className}:{as:'h1'|'div'|'p',value:string,label:string,onChange?:(v:string)=>void,className?:string}){
- const ref=useRef<HTMLElement>(null),initial=useRef(value);useEffect(()=>{if(ref.current&&window.document.activeElement!==ref.current&&ref.current.textContent!==value)ref.current.textContent=value},[value]);return <Tag ref={ref as any} className={className} contentEditable={!!onChange} suppressContentEditableWarning aria-label={onChange?label:undefined} onInput={e=>onChange?.(e.currentTarget.textContent||'')} onBlur={e=>onChange?.(e.currentTarget.textContent||'')} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}}}>{initial.current}</Tag>
+function InlineText({
+  as: Tag,
+  value,
+  label,
+  onChange,
+  className,
+}: {
+  as: 'h1' | 'div' | 'p'
+  value: string
+  label: string
+  onChange?: (v: string) => void
+  className?: string
+}) {
+  const ref = useRef<HTMLElement>(null),
+    initial = useRef(value)
+  useEffect(() => {
+    if (
+      ref.current &&
+      window.document.activeElement !== ref.current &&
+      ref.current.textContent !== value
+    )
+      ref.current.textContent = value
+  }, [value])
+  return (
+    <Tag
+      ref={ref as any}
+      className={className}
+      contentEditable={!!onChange}
+      suppressContentEditableWarning
+      aria-label={onChange ? label : undefined}
+      onInput={(e) => onChange?.(e.currentTarget.textContent || '')}
+      onBlur={(e) => onChange?.(e.currentTarget.textContent || '')}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          e.currentTarget.blur()
+        }
+      }}
+    >
+      {initial.current}
+    </Tag>
+  )
 }

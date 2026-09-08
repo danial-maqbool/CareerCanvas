@@ -1,4 +1,29 @@
-import {test,expect} from '@playwright/test'
-test('interview checklist and STAR story persist',async({page,request})=>{
- await page.goto('/');await page.getByRole('button',{name:'Interviews',exact:true}).click();await page.getByRole('button',{name:'STAR stories',exact:true}).click();await page.getByRole('button',{name:'Add star story',exact:true}).click();let d=page.getByRole('dialog');await d.getByRole('textbox',{name:'STAR story title'}).fill('Browser release story');for(const key of ['situation','task','action','result'])await d.getByRole('textbox',{name:key,exact:true}).fill('Real '+key);await d.getByRole('button',{name:'Save star story'}).click();await page.locator('.workspace-tabs').getByRole('button',{name:'Interviews',exact:true}).click();await page.getByRole('button',{name:'Add interview',exact:true}).click();d=page.getByRole('dialog');await d.getByRole('textbox',{name:'Interview title'}).fill('Cedar preparation browser');await d.getByRole('checkbox',{name:'Research company',exact:true}).check();await d.getByRole('checkbox',{name:'Browser release story'}).check();await d.getByRole('button',{name:'Save interview',exact:true}).click();await expect(page.getByText('1/7 preparation steps')).toBeVisible();const rows=await(await request.get('/api/career/interviews')).json();const row=rows.find((r:any)=>r.title==='Cedar preparation browser');expect(row.data.story_ids).toHaveLength(1);expect(row.data.checklist[0].done).toBe(true)
+import { test, expect } from './fixtures'
+test('interview checklist and STAR story persist', async ({ page, request }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Interviews', exact: true }).click()
+  await page.getByRole('button', { name: 'STAR stories', exact: true }).click()
+  await page.getByRole('button', { name: 'Add star story', exact: true }).click()
+  let d = page.getByRole('dialog')
+  await d.getByRole('textbox', { name: 'STAR story title' }).fill('Browser release story')
+  for (const key of ['situation', 'task', 'action', 'result'])
+    await d.getByRole('textbox', { name: key, exact: true }).fill('Real ' + key)
+  await d.getByRole('button', { name: 'Save star story' }).click()
+  await page
+    .locator('.workspace-tabs')
+    .getByRole('button', { name: 'Interviews', exact: true })
+    .click()
+  await page.getByRole('button', { name: 'Add interview', exact: true }).click()
+  d = page.getByRole('dialog')
+  await d.getByRole('textbox', { name: 'Interview title' }).fill('Cedar preparation browser')
+  await d.getByRole('checkbox', { name: 'Research company', exact: true }).check()
+  await d.getByRole('checkbox', { name: 'Browser release story' }).check()
+  await d.getByRole('button', { name: 'Save interview', exact: true }).click()
+  await expect(
+    page.locator('.record-card').filter({ hasText: 'Cedar preparation browser' })
+  ).toContainText('1/7 preparation steps')
+  const rows = await (await request.get('/api/career/interviews')).json()
+  const row = rows.find((r: any) => r.title === 'Cedar preparation browser')
+  expect(row.data.story_ids).toHaveLength(1)
+  expect(row.data.checklist[0].done).toBe(true)
 })

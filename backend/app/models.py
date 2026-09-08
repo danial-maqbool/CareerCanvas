@@ -16,18 +16,24 @@ def utcnow():
 
 
 def iso(value):
-    return (value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)).isoformat()
+    return (
+        value.replace(tzinfo=timezone.utc)
+        if value.tzinfo is None
+        else value.astimezone(timezone.utc)
+    ).isoformat()
 
 
 class Setting(Base):
-    __tablename__ = 'settings'
+    __tablename__ = "settings"
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
     value: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class AuditEvent(Base):
-    __tablename__ = 'audit_events'
+    __tablename__ = "audit_events"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
     action: Mapped[str] = mapped_column(String(100))
     entity_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow
+    )

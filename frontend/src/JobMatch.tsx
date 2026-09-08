@@ -5,8 +5,258 @@ import { Drawer } from './Profile'
 import { flushSave, useEditor } from './editor-store'
 import { Resume } from './resume-types'
 
-type Match={score:number,components:{name:string,weight:number,score:number,applicable:boolean}[],matched:string[],missing:string[],related:{skill:string,existing:string[]}[],suggestions:{id:string,kind:string,title:string,terms:string[],recommended:boolean,reason:string}[],disclaimer:string,job:{required_skills:string[],preferred_skills:string[],responsibilities:string[],experience_years:number|null,education:string[],keywords:string[]}}
-export default function JobMatch({onClose,onCreated}:{onClose:()=>void,onCreated:(r:Resume)=>void}){
-  const resume=useEditor(s=>s.resume)!,[description,setDescription]=useState(''),[result,setResult]=useState<Match|null>(null),[selected,setSelected]=useState<string[]>([]),[approved,setApproved]=useState(false),[name,setName]=useState(`${resume.name.slice(0,125)} — Tailored`),[error,setError]=useState(''),[busy,setBusy]=useState(false)
-  return <Drawer title="The right story for the right role." wide onClose={onClose}><div className="match-workspace"><section className="match-input"><span className="eyebrow">START WITH THE OPPORTUNITY</span><h3>A closer look at the role.</h3><p className="form-note">Paste a job description to compare it with your resume. Everything is analyzed locally.</p><label className="field"><span>Job description</span><textarea aria-label="Job description" rows={13} value={description} onChange={e=>{setDescription(e.target.value);setResult(null);setApproved(false)}} placeholder="Paste the responsibilities, skills, and qualifications…"/></label><button className="text-action" onClick={()=>api<{description:string}>('/demo/job').then(r=>{setDescription(r.description);setResult(null);setApproved(false)})}>Use fictional AI Engineer example</button><button className="button primary" disabled={description.trim().length<20||busy} onClick={async()=>{setBusy(true);setError('');try{await flushSave();const result=await api<Match>(`/resumes/${resume.id}/match`,json('POST',{description}));setResult(result);setSelected(result.suggestions.filter(s=>s.recommended).map(s=>s.id));setApproved(false)}catch(e){setError((e as Error).message)}finally{setBusy(false)}}}><Target size={14}/>{busy?'Comparing…':'Analyze job match'}</button><p className="form-note">Skill extraction uses a transparent vocabulary and known profile skills. Review the original description for requirements it may miss.</p></section><section className="match-results">{!result?<div className="empty-state"><Target size={40}/><h3>Bring your experience into focus.</h3><p>See matches, gaps, and relevant evidence you already have. No invented skills. No overwritten resumes.</p></div>:<><div className="match-score"><strong>{result.score}<small>/100</small></strong><div><h3>Resume-to-job match</h3><p>CareerCanvas-specific comparison</p></div></div><div className="match-components">{result.components.map(c=><div key={c.name}><span>{c.name}<b>{c.applicable?`${c.score}%`:'N/A'}</b></span><div className="progress-track"><div style={{width:`${c.applicable?c.score:0}%`}}/></div></div>)}</div><div className="match-skills"><div><h4><Check size={12}/>Matched skills</h4><div className="chips">{result.matched.map(s=><span className="chip" key={s}>{s}</span>)}</div></div><div><h4>Gaps to review</h4><div className="chips">{result.missing.map(s=><span className="chip missing-skill" key={s}>{s}</span>)}</div></div></div>{result.related.length>0&&<p className="related-skills">Related evidence: {result.related.map(r=>`${r.skill} ↔ ${r.existing.join(', ')}`).join(' · ')}. Related does not mean equivalent.</p>}<p className="form-note">{result.disclaimer}</p><div className="property-subheading">RELEVANT EXISTING CONTENT</div><p className="form-note">Review what to include in a new copy. Your customized source items are retained when selected.</p><div className="tailor-selections">{result.suggestions.map(s=><label className="tailor-option" key={s.id}><input type="checkbox" checked={selected.includes(s.id)} onChange={e=>{setSelected(e.target.checked?[...selected,s.id]:selected.filter(id=>id!==s.id));setApproved(false)}}/><div><strong>{s.title}</strong><span>{s.kind} · {s.terms.join(', ')}</span><p>{s.reason}</p></div></label>)}</div><label className="field"><span>New resume name</span><input value={name} maxLength={150} onChange={e=>setName(e.target.value)}/></label><label className="selection-row"><input type="checkbox" checked={approved} onChange={e=>setApproved(e.target.checked)}/>I reviewed this selection and want a new resume copy.</label><button className="button primary" disabled={!approved||!name.trim()} onClick={async()=>{try{await flushSave();const copy=await api<Resume>(`/resumes/${resume.id}/tailor`,json('POST',{description,selected_ids:selected,name,approved:true,target_role:description.split('\n')[0].slice(0,200)}));onCreated(copy)}catch(e){setError((e as Error).message)}}}>Create tailored resume copy <ArrowRight size={14}/></button></>}{error&&<p className="error" role="alert">{error}</p>}</section></div></Drawer>
+type Match = {
+  score: number
+  components: {
+    name: string
+    weight: number
+    score: number
+    applicable: boolean
+  }[]
+  matched: string[]
+  missing: string[]
+  related: { skill: string; existing: string[] }[]
+  suggestions: {
+    id: string
+    kind: string
+    title: string
+    terms: string[]
+    recommended: boolean
+    reason: string
+  }[]
+  disclaimer: string
+  job: {
+    required_skills: string[]
+    preferred_skills: string[]
+    responsibilities: string[]
+    experience_years: number | null
+    education: string[]
+    keywords: string[]
+  }
+}
+export default function JobMatch({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void
+  onCreated: (r: Resume) => void
+}) {
+  const resume = useEditor((s) => s.resume)!,
+    [description, setDescription] = useState(''),
+    [result, setResult] = useState<Match | null>(null),
+    [selected, setSelected] = useState<string[]>([]),
+    [approved, setApproved] = useState(false),
+    [name, setName] = useState(`${resume.name.slice(0, 125)} — Tailored`),
+    [error, setError] = useState(''),
+    [busy, setBusy] = useState(false)
+  return (
+    <Drawer title="The right story for the right role." wide onClose={onClose}>
+      <div className="match-workspace">
+        <section className="match-input">
+          <span className="eyebrow">START WITH THE OPPORTUNITY</span>
+          <h3>A closer look at the role.</h3>
+          <p className="form-note">
+            Paste a job description to compare it with your resume. Everything is analyzed locally.
+          </p>
+          <label className="field">
+            <span>Job description</span>
+            <textarea
+              aria-label="Job description"
+              rows={13}
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value)
+                setResult(null)
+                setApproved(false)
+              }}
+              placeholder="Paste the responsibilities, skills, and qualifications…"
+            />
+          </label>
+          <button
+            className="text-action"
+            onClick={() =>
+              api<{ description: string }>('/demo/job').then((r) => {
+                setDescription(r.description)
+                setResult(null)
+                setApproved(false)
+              })
+            }
+          >
+            Use fictional AI Engineer example
+          </button>
+          <button
+            className="button primary"
+            disabled={description.trim().length < 20 || busy}
+            onClick={async () => {
+              setBusy(true)
+              setError('')
+              try {
+                await flushSave()
+                const result = await api<Match>(
+                  `/resumes/${resume.id}/match`,
+                  json('POST', { description })
+                )
+                setResult(result)
+                setSelected(result.suggestions.filter((s) => s.recommended).map((s) => s.id))
+                setApproved(false)
+              } catch (e) {
+                setError((e as Error).message)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            <Target size={14} />
+            {busy ? 'Comparing…' : 'Analyze job match'}
+          </button>
+          <p className="form-note">
+            Skill extraction uses a transparent vocabulary and known profile skills. Review the
+            original description for requirements it may miss.
+          </p>
+        </section>
+        <section className="match-results">
+          {!result ? (
+            <div className="empty-state">
+              <Target size={40} />
+              <h3>Bring your experience into focus.</h3>
+              <p>
+                See matches, gaps, and relevant evidence you already have. No invented skills. No
+                overwritten resumes.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="match-score">
+                <strong>
+                  {result.score}
+                  <small>/100</small>
+                </strong>
+                <div>
+                  <h3>Resume-to-job match</h3>
+                  <p>CareerCanvas-specific comparison</p>
+                </div>
+              </div>
+              <div className="match-components">
+                {result.components.map((c) => (
+                  <div key={c.name}>
+                    <span>
+                      {c.name}
+                      <b>{c.applicable ? `${c.score}%` : 'N/A'}</b>
+                    </span>
+                    <div className="progress-track">
+                      <div style={{ width: `${c.applicable ? c.score : 0}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="match-skills">
+                <div>
+                  <h4>
+                    <Check size={12} />
+                    Matched skills
+                  </h4>
+                  <div className="chips">
+                    {result.matched.map((s) => (
+                      <span className="chip" key={s}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4>Gaps to review</h4>
+                  <div className="chips">
+                    {result.missing.map((s) => (
+                      <span className="chip missing-skill" key={s}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {result.related.length > 0 && (
+                <p className="related-skills">
+                  Related evidence:{' '}
+                  {result.related.map((r) => `${r.skill} ↔ ${r.existing.join(', ')}`).join(' · ')}.
+                  Related does not mean equivalent.
+                </p>
+              )}
+              <p className="form-note">{result.disclaimer}</p>
+              <div className="property-subheading">RELEVANT EXISTING CONTENT</div>
+              <p className="form-note">
+                Review what to include in a new copy. Your customized source items are retained when
+                selected.
+              </p>
+              <div className="tailor-selections">
+                {result.suggestions.map((s) => (
+                  <label className="tailor-option" key={s.id}>
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(s.id)}
+                      onChange={(e) => {
+                        setSelected(
+                          e.target.checked
+                            ? [...selected, s.id]
+                            : selected.filter((id) => id !== s.id)
+                        )
+                        setApproved(false)
+                      }}
+                    />
+                    <div>
+                      <strong>{s.title}</strong>
+                      <span>
+                        {s.kind} · {s.terms.join(', ')}
+                      </span>
+                      <p>{s.reason}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <label className="field">
+                <span>New resume name</span>
+                <input value={name} maxLength={150} onChange={(e) => setName(e.target.value)} />
+              </label>
+              <label className="selection-row">
+                <input
+                  type="checkbox"
+                  checked={approved}
+                  onChange={(e) => setApproved(e.target.checked)}
+                />
+                I reviewed this selection and want a new resume copy.
+              </label>
+              <button
+                className="button primary"
+                disabled={!approved || !name.trim()}
+                onClick={async () => {
+                  try {
+                    await flushSave()
+                    const copy = await api<Resume>(
+                      `/resumes/${resume.id}/tailor`,
+                      json('POST', {
+                        description,
+                        selected_ids: selected,
+                        name,
+                        approved: true,
+                        target_role: description.split('\n')[0].slice(0, 200),
+                      })
+                    )
+                    onCreated(copy)
+                  } catch (e) {
+                    setError((e as Error).message)
+                  }
+                }}
+              >
+                Create tailored resume copy <ArrowRight size={14} />
+              </button>
+            </>
+          )}
+          {error && (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          )}
+        </section>
+      </div>
+    </Drawer>
+  )
 }

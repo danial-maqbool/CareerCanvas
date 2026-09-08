@@ -1,39 +1,67 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
-test('live editing, inline editing, hide, reorder, autosave and undo',async({page,request})=>{
-  const profile=(await request.get('/api/profile')).json()
-  const p=await profile
-  const created=await request.post('/api/resumes',{data:{name:`Editor test ${Date.now()}`,selected_ids:p.items.map((i:{id:string})=>i.id)}})
-  const resume=await created.json()
-  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message))
+test('live editing, inline editing, hide, reorder, autosave and undo', async ({
+  page,
+  request,
+}) => {
+  const profile = (await request.get('/api/profile')).json()
+  const p = await profile
+  const created = await request.post('/api/resumes', {
+    data: {
+      name: `Editor test ${Date.now()}`,
+      selected_ids: p.items.map((i: { id: string }) => i.id),
+    },
+  })
+  const resume = await created.json()
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
   await page.goto('/')
-  await page.getByRole('button',{name:'Resumes',exact:true}).click()
-  await page.getByRole('button',{name:`Open ${resume.name}`,exact:true}).click()
-  await page.getByLabel('Edit full name',{exact:true}).fill('Alex Test Morgan')
-  await page.getByRole('button',{name:'Save',exact:true}).click()
-  await page.getByRole('button',{name:'02 Summary',exact:true}).click()
-  await page.getByLabel('Professional summary',{exact:true}).fill('Built reliable Python services for three teams.')
-  await expect(page.locator('.paginated-document')).toContainText('Built reliable Python services for three teams.')
-  await page.getByRole('button',{name:'Hide Certifications',exact:true}).click()
-  await page.getByRole('button',{name:'Move Projects up',exact:true}).click()
-  await page.getByRole('button',{name:'Move Projects up',exact:true}).click()
+  await page.getByRole('button', { name: 'Resumes', exact: true }).click()
+  await page.getByRole('button', { name: `Open ${resume.name}`, exact: true }).click()
+  await page.getByLabel('Edit full name', { exact: true }).fill('Alex Test Morgan')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await page.getByRole('button', { name: '02 Summary', exact: true }).click()
+  await page
+    .getByLabel('Professional summary', { exact: true })
+    .fill('Built reliable Python services for three teams.')
+  await expect(page.locator('.paginated-document')).toContainText(
+    'Built reliable Python services for three teams.'
+  )
+  await page.getByRole('button', { name: 'Hide Certifications', exact: true }).click()
+  await page.getByRole('button', { name: 'Move Projects up', exact: true }).click()
+  await page.getByRole('button', { name: 'Move Projects up', exact: true }).click()
   await expect(page.locator('.editor-document-name').getByRole('status')).toContainText('Saved')
-  await expect.poll(async()=>{const saved=await (await request.get(`/api/resumes/${resume.id}`)).json();return saved.document.personal.summary}).toBe('Built reliable Python services for three teams.')
-  await page.getByRole('button',{name:'Undo',exact:true}).click()
-  await page.getByRole('button',{name:'Redo',exact:true}).click()
-  await page.getByRole('button',{name:'Back to resumes',exact:true}).click()
+  await expect
+    .poll(async () => {
+      const saved = await (await request.get(`/api/resumes/${resume.id}`)).json()
+      return saved.document.personal.summary
+    })
+    .toBe('Built reliable Python services for three teams.')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await page.getByRole('button', { name: 'Back to resumes', exact: true }).click()
   await page.reload()
-  await page.getByRole('button',{name:'Resumes',exact:true}).click()
-  await page.getByRole('button',{name:`Open ${resume.name}`,exact:true}).click()
-  await expect(page.getByLabel('Edit full name',{exact:true})).toHaveText('Alex Test Morgan')
-  const saved=await (await request.get(`/api/resumes/${resume.id}`)).json()
+  await page.getByRole('button', { name: 'Resumes', exact: true }).click()
+  await page.getByRole('button', { name: `Open ${resume.name}`, exact: true }).click()
+  await expect(page.getByLabel('Edit full name', { exact: true })).toHaveText('Alex Test Morgan')
+  const saved = await (await request.get(`/api/resumes/${resume.id}`)).json()
   expect(saved.document.sections[0].kind).toBe('projects')
-  expect(saved.document.sections.find((s:{kind:string})=>s.kind==='certifications').visible).toBe(false)
+  expect(
+    saved.document.sections.find((s: { kind: string }) => s.kind === 'certifications').visible
+  ).toBe(false)
   expect(errors).toEqual([])
-  await page.screenshot({path:'test-results/editor-desktop.png',fullPage:true})
-  await page.setViewportSize({width:390,height:844})
-  await page.getByRole('button',{name:'Properties',exact:true}).click()
+  await page.screenshot({
+    path: 'test-results/editor-desktop.png',
+    fullPage: true,
+  })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.getByRole('button', { name: 'Properties', exact: true }).click()
   await expect(page.locator('.editor-properties')).toBeVisible()
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
-  await page.screenshot({path:'test-results/editor-mobile.png',fullPage:true})
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true
+  )
+  await page.screenshot({
+    path: 'test-results/editor-mobile.png',
+    fullPage: true,
+  })
 })
