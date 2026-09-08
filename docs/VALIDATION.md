@@ -92,3 +92,9 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - ATS fixtures and resume/version regressions: PASS (8 focused tests).
 - Browser: fixing a missing contact email increases the score by exactly 15 points; visible heuristic disclaimer and findings verified.
 - Scoring weights, checks, synthetic image-fixture scope, and limitations are documented in ATS_ANALYSIS.md. Editing invalidates stored scores; deleting analyzed resumes preserves referential integrity.
+
+## Phase 16 — job matching and reviewed tailoring
+
+- Backend extraction, synonym, missing-skill, explicit-review, and source-independence tests: PASS.
+- Browser: fictional job comparison, visible Kubernetes gap, disabled creation before review, independent tailored copy, and unchanged original: PASS.
+- Production build: PASS. Match component weights and limitations are documented.

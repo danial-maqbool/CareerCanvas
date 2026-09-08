@@ -19,7 +19,7 @@ export default function App() {
   const [notice, setNotice] = useState('')
   const [opened, setOpened] = useState<Resume|null>(null)
   const profilePage = ['Career Profile', 'Skills', 'Achievements', 'Portfolio'].includes(page)
-  if(opened) return <ResumeEditor initial={opened} onClose={()=>setOpened(null)}/>
+  if(opened) return <ResumeEditor onOpen={setOpened} initial={opened} onClose={()=>setOpened(null)}/>
   return <div className="app-shell">
     <aside className="sidebar"><a className="brand" href="/"><span className="brand-symbol"><Leaf size={22}/></span>CareerCanvas<span className="brand-dot">.</span></a>
       <div className="workspace-label">PERSONAL WORKSPACE</div>

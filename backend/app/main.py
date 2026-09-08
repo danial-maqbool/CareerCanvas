@@ -59,6 +59,8 @@ def create_app(settings: Settings | None = None):
     app.include_router(bullet_router)
     from .ats import router as ats_router
     app.include_router(ats_router)
+    from .job_matching import router as match_router
+    app.include_router(match_router)
 
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():

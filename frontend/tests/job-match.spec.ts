@@ -1,0 +1,21 @@
+import {test,expect} from '@playwright/test'
+
+test('job gaps stay unclaimed and reviewed tailoring creates an independent copy',async({page,request})=>{
+  const p=await (await request.get('/api/profile')).json()
+  const r=await (await request.post('/api/resumes',{data:{name:`Job Match ${Date.now()}`,selected_ids:p.items.map((i:{id:string})=>i.id)}})).json()
+  await page.goto('/');await page.getByRole('button',{name:'Resumes',exact:true}).click();await page.getByRole('button',{name:`Open ${r.name}`,exact:true}).click()
+  await page.getByRole('button',{name:'Job Match',exact:true}).click()
+  await page.getByRole('button',{name:'Use fictional AI Engineer example',exact:true}).click()
+  await page.getByRole('button',{name:'Analyze job match',exact:true}).click()
+  await expect(page.locator('.missing-skill').filter({hasText:'Kubernetes'})).toBeVisible()
+  await expect(page.getByRole('button',{name:'Create tailored resume copy',exact:true})).toBeDisabled()
+  await page.screenshot({path:'test-results/job-match.png',fullPage:true})
+  await page.getByRole('checkbox',{name:'I reviewed this selection and want a new resume copy.',exact:true}).check()
+  await page.getByRole('button',{name:'Create tailored resume copy',exact:true}).click()
+  await expect(page.getByLabel('Resume name',{exact:true})).toHaveValue(`${r.name} — Tailored`)
+  expect((await (await request.get(`/api/resumes/${r.id}`)).json()).document).toEqual(r.document)
+  const all=await (await request.get('/api/resumes')).json()
+  const copy=all.find((item:{name:string})=>item.name===`${r.name} — Tailored`)
+  expect(copy.id).not.toBe(r.id)
+  expect(JSON.stringify(copy.document)).not.toContain('Kubernetes')
+})

@@ -36,4 +36,8 @@ Four checks each contribute 25 points: a recognized leading action verb; at leas
 
 ## Job matching
 
-Job matching is separate from formatting readiness. Suggestions must reference existing evidence and never add unverified skills or fabricated experience. Tailoring creates a new copy after review. Match components will be documented with implementation.
+Job matching is separate from formatting readiness. It uses an explicit skill vocabulary, a small synonym map, and known profile skill names. It extracts required/preferred skills by line context, responsibility lines, numeric years requirements, education lines, and non-stopword keywords. Review the original job description for requirements the extractor misses.
+
+The normalized score is a weighted average of applicable components: skill coverage 50, keyword coverage 20, experience duration 15, education evidence 10, and role-word overlap 5. Unspecified components are excluded from the denominator. Experience duration merges overlapping employment months; it does not establish relevance or seniority. Education evidence checks whether education is present, not whether a degree satisfies a requirement. Role-word matching is lexical rather than semantic.
+
+Related skills are displayed separately and never counted as equivalent. Profile suggestions quote existing evidence. Users review a selectable content list and explicitly approve creation of a new resume copy. Missing skills never become profile or resume claims automatically. Existing customized items are retained when selected, and the source document stays unchanged.
