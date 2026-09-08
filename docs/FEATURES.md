@@ -1,6 +1,6 @@
 # Implemented Capability Inventory
 
-This release contains **78 capability groups** listed below. A group is a coherent user workflow, not a count of buttons, checks, database tables, or template variants. Optional provider adapters are implemented but live provider operation is not certified; see [validation](VALIDATION.md).
+This release contains **80 capability groups** listed below. A group is a coherent user workflow, not a count of buttons, checks, database tables, or template variants. Optional provider adapters are implemented but live provider operation is not certified; see [validation](VALIDATION.md). Resume document ingestion and direct uploaded-file ATS review are documented in [Resume Import & Direct ATS Review](RESUME_IMPORT.md).
 
 1. Dashboard with live resume, application, interview, offer, and profile metrics.
 2. Dashboard widget reordering, visibility, width, and reset.
@@ -80,5 +80,7 @@ This release contains **78 capability groups** listed below. A group is a cohere
 76. Light/dark/system themes and responsive editor drawers.
 77. Workspace backup/restore, reusable tags, and major-action audit events.
 78. Explicit first-run fictional demo workspace with populated documents and activity.
+79. Reviewed PDF, DOCX, and TXT resume import into Career Profile with local text extraction, field confidence/source evidence, duplicate detection, per-record keep/replace/merge/new choices, and import audit entries.
+80. Direct uploaded-resume ATS review with extracted-text preview, document-structure inspection, selectable-text/image-based warnings, detected links, standard-section checks, and one-click creation of an editable CareerCanvas resume.
 
-Photo support and DOCX import are optional features not included in this count. Hosted multi-user authentication and guaranteed AI factual equivalence are not offered.
+Photo support and automatic OCR for scanned/image-only resumes are not included. Scanned PDFs are detected and reported with a local-OCR recommendation. Hosted multi-user authentication and guaranteed AI factual equivalence are not offered.
