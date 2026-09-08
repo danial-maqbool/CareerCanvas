@@ -41,3 +41,11 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Pointer drag of Projects above Experience, keyboard drag of achievement bullets, and persistence after reload: PASS.
 - Existing editor workflow: PASS. Browser keyboard tests wait for the drag layout to be measured before issuing movement.
 - Explicit move-up/down controls remain available. Dragging starts only from dedicated handles after an activation threshold.
+
+## Phase 8 — templates
+
+- Twelve template content-contract tests: PASS; 16 frontend unit tests total.
+- Production build: PASS.
+- Browser: Classic → Technical → Modern preserves sections and personal content; all twelve gallery cards and category filters verified.
+- Four-step creation wizard with visual template selection: PASS in the library regression workflow.
+- Populated template gallery screenshot inspected. PDF layout validation remains a later export gate.

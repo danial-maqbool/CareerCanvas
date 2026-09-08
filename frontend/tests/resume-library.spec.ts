@@ -10,6 +10,7 @@ test('create, name, duplicate, rename, archive and delete independent resumes', 
   await page.getByLabel('Target role').fill('AI Engineer')
   await page.getByRole('button',{name:'Continue',exact:true}).click()
   await page.getByRole('button',{name:'Continue',exact:true}).click()
+  await page.getByRole('button',{name:'Continue',exact:true}).click()
   await page.getByRole('button',{name:'Create resume',exact:true}).last().click()
   await page.getByRole('button',{name:'Back to resumes',exact:true}).click()
   const card = page.locator('.resume-card').filter({has:page.getByRole('heading',{name,exact:true})})
