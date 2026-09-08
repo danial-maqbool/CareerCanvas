@@ -5,6 +5,7 @@ from backend.app import models  # noqa: F401
 from backend.app import profile_models  # noqa: F401
 from backend.app import resume_models  # noqa: F401
 from backend.app import versions  # noqa: F401
+from backend.app import analysis_models  # noqa: F401
 
 config = context.config
 url = config.attributes.get('database_url') or Settings().database_url

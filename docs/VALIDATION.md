@@ -85,3 +85,10 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Frontend suite: PASS (16 tests), production build: PASS.
 - Browser create v1, edit, create v2, compare, restore v1, retain v2 and automatic safety v3: validated by the version workflow.
 - Timestamp serialization now consistently includes UTC, including records reloaded from SQLite.
+
+## Phases 14–15 — achievements and ATS
+
+- Deterministic achievement feedback fixture: PASS.
+- ATS fixtures and resume/version regressions: PASS (8 focused tests).
+- Browser: fixing a missing contact email increases the score by exactly 15 points; visible heuristic disclaimer and findings verified.
+- Scoring weights, checks, synthetic image-fixture scope, and limitations are documented in ATS_ANALYSIS.md. Editing invalidates stored scores; deleting analyzed resumes preserves referential integrity.

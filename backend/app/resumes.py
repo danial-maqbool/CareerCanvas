@@ -16,7 +16,9 @@ HEADINGS = {'experience':'Experience','education':'Education','projects':'Projec
 
 
 def serialize(resume):
-    return {key: getattr(resume,key) for key in ['id','name','purpose','target_role','document','archived','primary','revision']} | {'updated_at': iso(resume.updated_at), 'created_at': iso(resume.created_at)}
+    analyses=sorted([a for a in getattr(resume,'analyses',[]) if a.kind=='ats' and a.revision==resume.revision],key=lambda a:iso(a.created_at),reverse=True)
+    latest=analyses[0].result if analyses else {}
+    return {key: getattr(resume,key) for key in ['id','name','purpose','target_role','document','archived','primary','revision']} | {'updated_at': iso(resume.updated_at), 'created_at': iso(resume.created_at),'ats_score':latest.get('score'),'page_count':latest.get('page_count')}
 
 
 def require_resume(db, resume_id):
