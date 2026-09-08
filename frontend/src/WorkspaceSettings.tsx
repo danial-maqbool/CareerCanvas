@@ -226,8 +226,9 @@ export default function WorkspaceSettings() {
           <span>LOCAL STORAGE</span>
         </div>
         <p className="form-note">
-          CareerCanvas runs on your device with a local SQLite database. No resume is uploaded
-          automatically. Public GitHub metadata is fetched only when requested.
+          CareerCanvas runs on your device with a local SQLite database. Resume file import is
+          processed by the local CareerCanvas server and the original upload is not retained by the
+          import workflow. Public GitHub metadata is fetched only when requested.
         </p>
         <div className="privacy-status">
           <span className="status-dot" />
@@ -239,9 +240,9 @@ export default function WorkspaceSettings() {
           review.
         </p>
         <p className="form-note">
-          DOCX export preserves editable content and basic formatting in a single-column document.
-          It does not reproduce every visual template exactly. DOCX import is not supported;
-          CareerCanvas JSON preserves the full resume design.
+          PDF, DOCX, and TXT resumes can be reviewed and mapped into the Career Profile. Scanned or
+          image-only PDFs are detected, but automatic OCR is not bundled. DOCX export remains an
+          editable single-column reconstruction and does not reproduce every visual template exactly.
         </p>
       </section>
       {notice && (
