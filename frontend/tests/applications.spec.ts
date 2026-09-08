@@ -22,14 +22,24 @@ test('kanban drag and keyboard stage selection persist timeline', async ({ page,
     .click()
   await page.getByRole('combobox', { name: 'Application stage' }).selectOption('Interview')
   await page.getByRole('button', { name: 'Save application', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  // Reopen immediately: the board must hold the revision returned by the save.
+  await page
+    .locator('[data-stage="Interview"]')
+    .getByRole('button', { name: 'Kanban Cedar AI Engineer' })
+    .click()
+  await page.getByRole('combobox', { name: 'Application stage' }).selectOption('Offer')
+  await page.getByRole('button', { name: 'Save application', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   await page.reload()
   await page.getByRole('button', { name: 'Applications', exact: true }).click()
-  await expect(page.locator('[data-stage="Interview"]')).toContainText('Kanban Cedar')
+  await expect(page.locator('[data-stage="Offer"]')).toContainText('Kanban Cedar')
   const history = await (await request.get(`/api/applications/${row.id}/history`)).json()
   expect(history.map((h: { stage: string }) => h.stage)).toEqual([
     'Interested',
     'Applied',
     'Interview',
+    'Offer',
   ])
   await request.delete(`/api/applications/${row.id}`)
 })

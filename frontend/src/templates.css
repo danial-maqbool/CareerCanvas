@@ -195,10 +195,7 @@
   margin: 0;
 }
 .template-compact .resume-technologies {
-  display: inline-block;
-}
-.template-academic {
-  counter-reset: sections;
+  display: block;
 }
 .template-academic .resume-header {
   text-align: center !important;
@@ -219,7 +216,6 @@
   justify-content: center;
 }
 .template-academic h2 {
-  counter-increment: sections;
   font-family: 'Times New Roman', serif;
   font-size: 1.14em;
   color: #222;
@@ -228,8 +224,7 @@
   border-bottom: 1px solid #222;
 }
 .template-academic h2:before {
-  content: counter(sections, upper-roman) '. ';
-  font-size: 0.88em;
+  content: none;
 }
 .template-academic .section-publications .resume-item {
   padding-left: 20px;

@@ -1,33 +1,56 @@
-# Resume engine
-
-Status: document editing, template rendering, measured pagination, PDF export, editable DOCX, and JSON document export implemented. Version history is a subsequent phase.
+# Resume Engine
 
 ## Section model
 
-A resume owns ordered sections and content items independent of its source Career Profile. Hidden sections retain their content. References default to excluded. Items and bullets require stable identifiers for editing and reordering.
+A resume owns personal information, ordered sections, stable item IDs, source IDs, visibility flags, a template key, and styles. Content is copied from selected profile records and remains independent thereafter. Sections include header, summary, experience, education, projects, skills, certifications, publications, achievements, languages, references, portfolio, and custom content. References default to hidden. Hiding fields or sections retains all enclosed content. Drag operations use dedicated handles; buttons and keyboard controls provide alternatives. Reordering persists in the document snapshot.
 
 ## Templates and layout
 
-The required gallery comprises Classic, Modern, Minimal, Professional, Technical, Executive, Compact, Academic, Creative, Two Column, Developer, and Research. These must have materially distinct layouts, not merely different colors. Presentation changes must never mutate document content.
+| Template | Presentation |
+| --- | --- |
+| Classic | Centered serif introduction and traditional ruled headings |
+| Modern | Strong left-aligned introduction and restrained accent rules |
+| Minimal | Open whitespace and widely spaced small headings |
+| Professional | Solid accent heading bars and a contact band |
+| Technical | Technical hierarchy with timeline-style item rails |
+| Executive | Serif introduction with section labels in a separate rail |
+| Compact | Dense hierarchy and reduced visual spacing |
+| Academic | Centered scholarly introduction and numbered section headings |
+| Creative | High-contrast introduction and paired content columns |
+| Two Column | Main narrative column with a supporting skills rail |
+| Developer | Monospace accents and code-comment-inspired headings |
+| Research | Serif scholarly typography and italic section hierarchy |
+
+Shared semantic content renders through different CSS structures. Template selection cannot modify content. Gallery filters and previews use current career data. Tests switch Classic to Technical to Modern and compare content; all twelve templates render expected contact, experience, education, skills, and project text.
+
+## Styles
+
+System fonts include Arial, Calibri, Georgia, Times New Roman, Verdana, and System Sans. Controls cover body size, line height, margins, section spacing, bullet spacing, heading style, alignment, date format, primary/secondary/text colors, and professional presets. Fonts require no runtime downloads. Skills have section-level columns, separators, heading, and visibility settings; spacing is controlled by document styles.
 
 ## Page sizing and pagination
 
-Support A4 and US Letter with explicit paper boundaries. Detect overflow and undesirable item splits. One-page fitting must use bounded typography and spacing adjustments without deleting content.
+A4 uses 210 x 297 mm; US Letter uses 8.5 x 11 inches. Real paper boundaries and page numbers remain visible at independent zoom levels (50%, 75%, 100%, 125%, fit width, fit page). Mobile editing panels become drawers.
+
+The browser measures escaped React markup in an offscreen node with identical fonts, sizes, and template CSS. Ordinary items move as units. Oversized bullet collections and descriptions split into continuation fragments for rendering, without mutating stored source text. The Two Column layout measures its supporting rail separately. Repeated sections continue across pages; they never silently disappear.
+
+Indivisible oversized text remains present with a warning. Users can shorten content or adjust spacing. Fit to One Page performs at most eight bounded adjustments: minimum 10 pt body type, 10 mm margin, 6 px section spacing, 1 px bullet spacing, and 1.2 line height. If content still needs multiple pages, the UI says so. It never removes content to meet a page target.
 
 ## PDF export
 
-Use Chromium print rendering with semantic text, hyperlinks, explicit page dimensions, and controlled breaks. Validate extracted text, page count, links, and rendered output for every template.
+The backend opens `/print/{resume_id}` on the local application. It uses installed Playwright Chromium, with an installed Google Chrome fallback. Third-party requests are blocked. It waits for fonts and measured pagination, verifies no page content exceeds its frame, then prints tagged PDF with selectable text and link annotations. A semaphore permits two concurrent exports. Page count is checked after printing. Oversized indivisible content returns HTTP 422 guidance instead of a clipped PDF; browser failures return a distinct service error.
 
-The backend opens the local `/print/{resume_id}` view, blocks third-party requests, waits for measured pagination and local fonts, and produces a tagged PDF. It uses Playwright Chromium or an installed Google Chrome fallback. Export concurrency is bounded at two browsers. The print view reuses the editor's React document and template CSS; it does not photograph the preview.
-
-Pagination measures escaped server-rendered React markup in an offscreen browser node. Items move as units where possible; oversized bullet collections and long descriptions can continue on subsequent pages. Indivisible oversized content remains present with a warning. The Two Column template fills its designated side rail before allocating the main column to subsequent pages.
+Twelve template PDFs are reopened with pypdf to inspect text, headings, expected content, links, page size, nonblank pages, and agreement with the measured preview. Ten further layout cases cover A4/Letter and one-page, two-page, long-experience, many-project, and long-skill inputs. A separate oversized-content test verifies rejection without source deletion. The final template set contains 24 pages; glyph-bound inspection found zero out-of-page glyphs, and all pages were visually reviewed after Poppler rendering.
 
 ## DOCX export
 
-Use python-docx for editable headings, paragraphs, bullets, dates, and hyperlinks. Validate document structure and expected text; document any presentation differences from PDF.
+python-docx creates editable paragraphs, native Word bullets, heading styles, and hyperlink relationships. It retains selected fonts, body size, colors, margins, and page dimensions. Hidden content is excluded; source data is preserved. Rich summary bold, italic, and bullets become Word formatting. Ordinary entries use keep-with-next to avoid detached links.
 
-DOCX uses semantic Word paragraph styles, native bullet lists, and hyperlink relationships. It retains the selected system font, type size, margins, page size, and colors, while reconstructing content as a single-column document for editability. Ordinary entries use keep-with-next grouping to avoid detached links. Arbitrarily long entries may still flow across Word pages. DOCX page breaks can differ from Chromium PDFs.
+DOCX intentionally reconstructs a single-column editable document rather than reproducing every PDF template. Word font substitution and pagination can differ by machine. Long entries can flow over pages. Tests inspect all twelve template inputs plus hidden and rich-text content. Microsoft Word read-only rendering and Poppler were used to inspect the three-page complete-profile sample; LibreOffice was unavailable on the validation machine.
 
-## JSON and versions
+## JSON import/export
 
-Use a versioned JSON format for document backups and validated imports. Immutable version snapshots support content comparison and nondestructive restoration.
+Individual documents use the `CareerCanvas Resume` format and schema version 1. Imports validate the document and create a new independent resume. Complete workspace backups are separate and include relational career activity. Version compatibility and relationships are checked before restore, with an automatic safety backup and transactional replacement. API keys are excluded.
+
+## Versions
+
+Creating a version captures document content, style, name, and note in an immutable snapshot. Comparison traverses nested content and reports additions, removals, and modifications, including summary, sections, skills, projects, and bullets. Restore saves the current state as a new safety version before applying the selected snapshot. Newer versions remain available. Undo/redo provides recent local editing history separately from these durable versions.

@@ -45,6 +45,19 @@ const doc = {
   })),
 } as ResumeDocument
 describe('template content contract', () => {
+  it('academic continuation headings retain their document ordinal', () => {
+    const page = { ...doc, template: 'Academic' as const, sections: doc.sections.slice(3) }
+    const html = renderToStaticMarkup(
+      <ResumePaper
+        document={page}
+        showHeader={false}
+        showSummary={false}
+        sectionOrder={doc.sections.map((section) => section.id)}
+      />
+    )
+    expect(html).toContain('V. projects')
+    expect(html).not.toContain('I. projects')
+  })
   for (const template of templateInfo)
     it(`${template.name} retains all required sections`, () => {
       const before = JSON.stringify(doc)

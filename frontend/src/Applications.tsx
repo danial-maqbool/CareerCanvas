@@ -79,12 +79,12 @@ export default function Applications() {
       stage = String(event.over?.id)
     if (!job || !stages.includes(stage) || stage === job.status) return
     try {
-      await api(
+      const saved = await api<Job>(
         `/applications/${job.id}/stage`,
         json('PATCH', { status: stage, revision: job.revision })
       )
+      setRows((rows) => rows.map((row) => (row.id === saved.id ? saved : row)))
       setNotice(`${job.company} moved to ${stage}`)
-      void reload()
     } catch (e) {
       setError((e as Error).message)
       void reload()
@@ -176,6 +176,14 @@ export default function Applications() {
       {selected && (
         <JobEditor
           initial={selected === 'new' ? undefined : selected}
+          onSaved={(saved) => {
+            setRows((rows) =>
+              rows.some((row) => row.id === saved.id)
+                ? rows.map((row) => (row.id === saved.id ? saved : row))
+                : [...rows, saved]
+            )
+            setSelected(null)
+          }}
           onClose={() => {
             setSelected(null)
             void reload()
@@ -270,7 +278,15 @@ function JobCard({
     </article>
   )
 }
-export function JobEditor({ initial, onClose }: { initial?: Job; onClose: () => void }) {
+export function JobEditor({
+  initial,
+  onClose,
+  onSaved,
+}: {
+  initial?: Job
+  onClose: () => void
+  onSaved?: (saved: Job) => void
+}) {
   const [draft, setDraft] = useState<Partial<Job>>(
       initial || {
         company: '',
@@ -324,8 +340,12 @@ export function JobEditor({ initial, onClose }: { initial?: Job; onClose: () => 
     setBusy(true)
     try {
       const { id, created_at, updated_at, ...payload } = draft
-      await api(id ? `/applications/${id}` : '/applications', json(id ? 'PUT' : 'POST', payload))
-      onClose()
+      const saved = await api<Job>(
+        id ? `/applications/${id}` : '/applications',
+        json(id ? 'PUT' : 'POST', payload)
+      )
+      if (onSaved) onSaved(saved)
+      else onClose()
     } catch (e) {
       setError((e as Error).message)
     } finally {

@@ -22,7 +22,14 @@ export function paginateDocument(document: ResumeDocument): Pagination {
   const hasContent = () => current.first || current.document.sections.some((s) => s.items.length)
   function fits(page: PageLayout) {
     sandbox.innerHTML = renderToStaticMarkup(
-      <ResumePaper document={page.document} showHeader={page.first} showSummary={page.first} />
+      <ResumePaper
+        document={page.document}
+        showHeader={page.first}
+        showSummary={page.first}
+        sectionOrder={document.sections
+          .filter((section) => section.visible)
+          .map((section) => section.id)}
+      />
     )
     const paper = sandbox.firstElementChild as HTMLElement
     paper.style.minHeight = '0'

@@ -9,6 +9,7 @@ test('real page boundaries retain long experience bullets without blank pages', 
     await request.post('/api/resumes', {
       data: {
         name: `Long pagination ${Date.now()}`,
+        template: 'Academic',
         selected_ids: p.items
           .filter((i: { kind: string }) => i.kind === 'experience')
           .map((i: { id: string }) => i.id),
@@ -34,6 +35,8 @@ test('real page boundaries retain long experience bullets without blank pages', 
   await page.getByRole('button', { name: `Open ${r.name}`, exact: true }).click()
   await expect(page.locator('.paginated-document')).toHaveAttribute('data-pagination-ready', 'true')
   expect(await page.locator('.paper-page').count()).toBeGreaterThan(1)
+  for (const heading of await page.locator('.paginated-document .section-experience h2').all())
+    await expect(heading).toHaveText('II. Experience')
   for (let i = 1; i <= 35; i++)
     await expect(page.locator('.paginated-document')).toContainText(`Achievement ${i}:`)
   const heights = await page

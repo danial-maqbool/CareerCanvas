@@ -18,6 +18,7 @@ test('complete career journey survives a server restart', async ({ page, request
     .fill('Building dependable AI systems with a cross-functional product team.')
   await page.getByRole('button', { name: 'Save to profile', exact: true }).click()
   async function quick(name: string) {
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await page.locator('.quick-add summary').click()
     await page.locator('.quick-add').getByRole('button', { name, exact: true }).click()
   }
@@ -182,6 +183,7 @@ test('complete career journey survives a server restart', async ({ page, request
       .click()
     await page.getByRole('combobox', { name: 'Application stage' }).selectOption(stage)
     await page.getByRole('button', { name: 'Save application', exact: true }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
   }
   await quick('Interview')
   await page

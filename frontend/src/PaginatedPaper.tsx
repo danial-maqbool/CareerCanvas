@@ -35,6 +35,9 @@ export default function PaginatedPaper(
           </span>
           <ResumePaper
             {...props}
+            sectionOrder={props.document.sections
+              .filter((section) => section.visible)
+              .map((section) => section.id)}
             document={
               ready ? page.document : { ...page.document, personal: props.document.personal }
             }

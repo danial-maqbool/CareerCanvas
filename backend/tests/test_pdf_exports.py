@@ -90,6 +90,9 @@ def test_pdf_contains_text_sections_links_and_correct_pagination(
     ]:
         assert expected in text, (template, expected, text)
     assert len(reader.pages) == int(response.headers["X-CareerCanvas-Pages"])
+    if template == "Academic":
+        assert "IV. Projects" in reader.pages[1].extract_text()
+        assert "V. Skills" in text
     assert all(len(page.extract_text().strip()) > 40 for page in reader.pages)
     for page in reader.pages:
         assert abs(float(page.mediabox.width) - 595.28) < 2

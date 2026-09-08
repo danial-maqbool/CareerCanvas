@@ -1,100 +1,64 @@
-# Validation record
+# Validation Report
 
-Only results actually run are recorded as passing. Product acceptance remains incomplete until all requested workflows have evidence.
+Final implementation validation: **2026-09-09**, Windows, Python 3.12, Node.js 24. Portfolio/document review completed 2026-09-09. Validation includes final Academic numbering, Compact link spacing, and immediate application-reopen revision fixes.
 
-## Phase 2 — foundation
+## Automated results
 
-- Frontend unit test: PASS (1 test).
-- TypeScript and Vite production build: PASS.
-- Playwright shell navigation and horizontal overflow: PASS at 1920×1080, 1440×900, 1366×768, 1024×768, 768×1024, and 390×844 (6 tests).
-- Uncaught browser page errors during these shell checks: none.
-- Desktop screenshot manually inspected at 1366 pixels wide.
-- Private database, environment, import/export, and dependency paths: ignored by Git.
-- Backend migration repeatability, data preservation, health, unknown API, Host validation, and cross-origin rejection: PASS (2 tests). Two upstream deprecation warnings are reported by the HTTP test client.
+| Gate | Result | Evidence and scope |
+| --- | --- | --- |
+| Backend | PASS: 93 tests | Full pytest run, 106.77 seconds; isolated SQLite databases |
+| Frontend | PASS: 17 tests | Vitest: store history/autosave behavior, template content, workspace navigation |
+| TypeScript/Vite production build | PASS | Typed production build; separated React, chart, and rich-editor chunks |
+| Playwright | PASS: 33 workflows | zero failed, skipped, or flaky tests |
+| Browser console | PASS | No page errors or console errors in all 33 guarded workflows |
+| PDF templates | PASS: 12 templates | Reopened files contain expected text, sections, links, correct A4 sizing, and measured page count |
+| PDF stress layouts | PASS: 10 cases | Five fixtures each on A4 and Letter: one page, two pages, long experience, many projects, long skills |
+| Oversized content | PASS | Export rejected with guidance; stored content remains intact |
+| PDF glyph geometry | PASS: 24 template pages | Zero glyphs outside page bounds; all pages rendered with Poppler and visually reviewed |
+| DOCX | PASS | Twelve templates, hidden content, rich text, and cover letter inspected programmatically |
+| Word rendering | PASS with alternate renderer | Three-page complete-profile DOCX opened read-only in Microsoft Word, rendered to PDF/PNG and visually reviewed |
+| JSON | PASS | Document import/export and whole-workspace schema/relationship validation, safety backup, invalid-restore preservation |
+| Restart persistence | PASS | Integrated journey stops server, verifies it is unreachable, restarts same database, and verifies saved resume/goal |
+| Standard launcher | PASS | `python run.py` selects project virtual environment and serves built application |
+| Portfolio capture | PASS | Twelve populated fictional screenshots; no browser console errors during capture |
 
-Shell tests do not establish acceptance of resume editing, exports, or other product workflows. Their screenshots are local test artifacts, not the final populated portfolio screenshots.
+The PDF module contains 23 test cases (12 templates + 10 layouts + 1 overflow rejection). Cover-letter PDF is covered separately. Export tests inspect content rather than only file existence. Generated PDFs/DOCX/QA renders remain in ignored local validation directories.
 
-## Phase 3 — Career Profile
+Two backend warnings concern upstream Starlette/httpx and AnyIO deprecations. The build reports third-party Zod PURE annotation warnings. These are not application test failures or frontend console errors.
 
-- Backend: PASS, 31 tests total covering all demo item types, CRUD, validation, persistence, completion, and nondestructive demo loading.
-- Frontend unit test and production build: PASS.
-- Browser CRUD and reload persistence: PASS (1 workflow). Six shell viewport tests also passed against FastAPI. A required-label test selector was corrected before the workflow passed.
+## Integrated career journey
 
-## Phase 4 — independent resumes and library
+`frontend/tests/acceptance.spec.ts` starts from an empty temporary database and launches the application. It loads the fictional career, edits profile experience, adds a skill/project/achievement, creates and names a resume through the wizard, selects content, and opens the editor. It edits the name inline and summary, adds/reorders bullets, moves Projects above Experience, hides Certifications, switches templates without content changes, changes font/spacing/accent/zoom, and checks measured pages.
 
-- Backend: PASS, 35 tests total, including immutable source separation, duplication, archive/delete, optimistic revisions, template content preservation, and bounded typography.
-- Frontend unit test and production build: PASS.
-- Browser library workflow: create, name, duplicate, rename, archive, delete, reload.
-- Fixed separator whitespace normalization discovered by the content-preservation test and action-menu dismissal discovered by browser testing.
+The journey runs ATS, fixes a missing email, and verifies the expected 15-point increase. It downloads PDF and DOCX and reopens them programmatically to inspect text, expected sections, and links. It creates v1/v2, compares changes, restores v1 with a safety snapshot, analyzes a fictional job, verifies Kubernetes is not added as a claim, and creates an independent reviewed tailored copy. It tracks stage changes, prepares an interview, creates a goal and letter, checks analytics and Ctrl+K, then restarts the server and verifies persistence.
 
-## Phases 5–6 — state and live editor
+Separate focused browser workflows cover pointer section/Kanban dragging, keyboard bullet order, refresh persistence, template preservation, version retention, STAR stories, preparation checklists, backup restore, themes, tags, dashboard widgets, and profile libraries. All tests use isolated server/database fixtures, never personal workspace data.
 
-- Frontend unit tests: PASS (4 total), including undo/redo, failed-save retention, and revision handling.
-- Production build: PASS.
-- Browser: PASS for inline name editing, immediate summary preview, section visibility/order, autosave, undo/redo, reload persistence, and mobile properties drawer.
-- Resume Library regression workflow: PASS.
-- Desktop and 390×844 editor screenshots visually inspected. Pagination and drag handles are subsequent phases.
+## Responsive results
 
-## Phase 7 — section and bullet dragging
+| Browser viewport | Result |
+| --- | --- |
+| 1920 x 1080 | PASS |
+| 1440 x 900 | PASS |
+| 1366 x 768 | PASS |
+| 1024 x 768 | PASS |
+| 768 x 1024 | PASS |
+| 390 x 844 | PASS |
 
-- Production build and four frontend unit tests: PASS.
-- Pointer drag of Projects above Experience, keyboard drag of achievement bullets, and persistence after reload: PASS.
-- Existing editor workflow: PASS. Browser keyboard tests wait for the drag layout to be measured before issuing movement.
-- Explicit move-up/down controls remain available. Dragging starts only from dedicated handles after an activation threshold.
+The six-viewport suite visits ten major workspace pages and checks navigation and horizontal overflow. Dedicated editor tests cover mobile drawers and usable preview. These are browser viewport checks, not physical-device certification or an exhaustive accessibility audit. Keyboard alternatives and focus indicators are implemented and exercised by focused workflows.
 
-## Phase 8 — templates
+## ATS, tailoring, and AI boundaries
 
-- Twelve template content-contract tests: PASS; 16 frontend unit tests total.
-- Production build: PASS.
-- Browser: Classic → Technical → Modern preserves sections and personal content; all twelve gallery cards and category filters verified.
-- Four-step creation wizard with visual template selection: PASS in the library regression workflow.
-- Populated template gallery screenshot inspected. PDF layout validation remains a later export gate.
+ATS fixtures cover good/bad content, missing contacts, image-heavy source markers, excessive columns, type size, and page count. Image-heavy fixtures directly exercise the analyzer; image-only resume import is not implemented. The score is a CareerCanvas heuristic, not an employer ATS result.
 
-## Phase 9 — design controls
+Matching tests cover aliases, missing skills, existing evidence, reviewed copies, unchanged originals, and overlapping experience dates. Deterministic AI tests cover new factual claims including written numbers; mocked provider tests check configuration and consent boundaries. **Live Gemini and Ollama calls are NOT RUN** without configured credentials/models. GitHub import has mocked API validation; live external availability is not certified.
 
-- Sixteen frontend tests and production build: PASS.
-- Browser: font, point size, primary color, long date formatting, US Letter selection, and persistence: PASS.
-- Six system-font choices, six color/type presets, bounded spacing and type controls, heading styles, and header alignment implemented.
+## Screenshots and reproducibility
 
-## Phase 10 — measured pagination
+All twelve required files are under `docs/screenshots`: dashboard, resume_library, resume_editor, template_gallery, ats_analysis, job_match, version_comparison, career_profile, application_kanban, job_detail, interview_prep, and career_analytics. They were captured from a deliberately seeded fictional workspace and visually inspected. `frontend/scripts/capture-screenshots.mjs` guards the demo identity, resume/job counts, and fictional company names before capture; do not use it against personal records.
 
-- Browser long-experience fixture: PASS, all 35 numbered bullets retained, multiple nonblank pages, A4 and Letter heights bounded.
-- Live editor regression: PASS. Styling persistence: PASS after waiting for the asynchronous save-and-close operation to finish.
-- Sixteen frontend tests and production build: PASS.
-- Pagination measures escaped React markup with the actual template CSS and splits long bullet collections or long descriptions. Oversized indivisible content is retained and reported as a warning.
-- One-page fitting applies bounded spacing/type reductions; it does not promise that arbitrarily long content can fit a single readable page.
+Run the commands in the README to reproduce automated checks. Playwright starts its own temporary servers. PDF inspection uses `scripts/inspect_pdf_layouts.py` with Poppler, Pillow, and pdfplumber. `scripts/render_docx_word.ps1` refuses to run if Word is already open, opens its input read-only, and closes without saving. The packaged LibreOffice renderer could not run because LibreOffice was absent; the documented Word fallback supplied visual evidence instead.
 
-## Phase 11 — PDF and document JSON export
+## Known limitations and bugs
 
-- All twelve templates: PASS through an isolated live FastAPI server and Chromium. PDFs reopen in pypdf, preserve expected text and link annotations, have correct A4 media boxes, match measured page counts, and contain no blank pages.
-- All 23 generated pages rendered with Poppler and inspected as a contact sheet. The Two Column side-rail placement was improved, re-tested, and re-rendered.
-- Browser PDF and JSON downloads after pending edits: PASS; downloaded names and JSON content reflect the saved document.
-- Generated validation PDFs and PNGs remain in ignored `data/validation/`.
-
-## Phase 12 — editable DOCX
-
-- Backend suite: PASS, 60 tests including twelve PDF exports and thirteen DOCX content/structure checks. DOCX checks were rerun after final layout adjustments and passed.
-- DOCX preserves headings, real Word bullets, links, profile content, page size, and hidden-field exclusions. It contains editable text rather than page images.
-- Packaged `render_docx.py` could not render because LibreOffice is unavailable. An isolated Microsoft Word read-only export was used instead; all three final pages were rendered with Poppler and visually inspected.
-- Fixed an inherited title border and an orphaned project link. Word grouping now keeps ordinary entries and their links together.
-- DOCX intentionally uses a single-column editable structure; it does not reproduce every two-column PDF layout exactly.
-
-## Phase 13 — versions and comparison
-
-- Backend version lifecycle and resume regressions: PASS (5 focused tests).
-- Frontend suite: PASS (16 tests), production build: PASS.
-- Browser create v1, edit, create v2, compare, restore v1, retain v2 and automatic safety v3: validated by the version workflow.
-- Timestamp serialization now consistently includes UTC, including records reloaded from SQLite.
-
-## Phases 14–15 — achievements and ATS
-
-- Deterministic achievement feedback fixture: PASS.
-- ATS fixtures and resume/version regressions: PASS (8 focused tests).
-- Browser: fixing a missing contact email increases the score by exactly 15 points; visible heuristic disclaimer and findings verified.
-- Scoring weights, checks, synthetic image-fixture scope, and limitations are documented in ATS_ANALYSIS.md. Editing invalidates stored scores; deleting analyzed resumes preserves referential integrity.
-
-## Phase 16 — job matching and reviewed tailoring
-
-- Backend extraction, synonym, missing-skill, explicit-review, and source-independence tests: PASS.
-- Browser: fictional job comparison, visible Kubernetes gap, disabled creation before review, independent tailored copy, and unchanged original: PASS.
-- Production build: PASS. Match component weights and limitations are documented.
+No known unresolved bugs were found in the validated workflows. This is not a guarantee for arbitrary input or untested environments. English heuristic matching, incomplete AI factual detection, single-user local storage, single-column DOCX reconstruction, very large indivisible text blocks, absent optional photo/DOCX import, and unverified external providers remain documented limitations. Non-Windows platforms and physical mobile devices have not received this acceptance run.

@@ -112,7 +112,9 @@ export default function ResumePaper({
   selected,
   showHeader = true,
   showSummary = true,
+  sectionOrder,
 }: {
+  sectionOrder?: string[]
   showHeader?: boolean
   showSummary?: boolean
   document: ResumeDocument
@@ -123,6 +125,28 @@ export default function ResumePaper({
   const p = doc.personal,
     s = doc.style
   const visible = (key: string) => !p.hidden_fields.includes(key)
+  const order =
+    sectionOrder || doc.sections.filter((section) => section.visible).map((section) => section.id)
+  const numberedHeading = (title: string, id?: string) => {
+    if (doc.template !== 'Academic') return title
+    let number = id ? order.indexOf(id) + 1 + (visible('summary') && p.summary ? 1 : 0) : 1
+    let roman = ''
+    for (const [value, symbol] of [
+      [50, 'L'],
+      [40, 'XL'],
+      [10, 'X'],
+      [9, 'IX'],
+      [5, 'V'],
+      [4, 'IV'],
+      [1, 'I'],
+    ] as const) {
+      while (number >= value) {
+        roman += symbol
+        number -= value
+      }
+    }
+    return `${roman}. ${title}`
+  }
   const style = {
     '--resume-accent': s.accent,
     '--resume-secondary': s.secondary,
@@ -194,7 +218,7 @@ export default function ResumePaper({
           className={`resume-section ${selected === 'summary' ? 'paper-selected' : ''}`}
           onClick={() => onSelect?.('summary')}
         >
-          <h2>Professional Summary</h2>
+          <h2>{numberedHeading('Professional Summary')}</h2>
           {doc.summary_rich ? (
             <div>
               <RichContent node={doc.summary_rich} />
@@ -219,7 +243,7 @@ export default function ResumePaper({
               data-section-id={section.id}
               onClick={() => onSelect?.(section.id)}
             >
-              <h2>{section.heading}</h2>
+              <h2>{numberedHeading(section.heading, section.id)}</h2>
               {section.kind === 'skills' ? (
                 <div className="resume-skills" style={{ columns: section.columns }}>
                   {section.items.map((i) => String(i.data.name)).join(section.separator)}

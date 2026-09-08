@@ -57,6 +57,8 @@ test('pointer section drag and keyboard bullet drag persist after reload', async
   await expect(page.getByRole('textbox', { name: 'Bullet 2', exact: true })).toHaveValue(first)
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await page.getByRole('button', { name: 'Back to resumes', exact: true }).click()
+  // Navigation completes only after the editor flushes its pending save.
+  await expect(page.getByRole('heading', { name: 'Resumes', exact: true })).toBeVisible()
   const saved = await (await request.get(`/api/resumes/${resume.id}`)).json()
   expect(
     saved.document.sections.find((s: { kind: string }) => s.kind === 'experience').items[0].data
