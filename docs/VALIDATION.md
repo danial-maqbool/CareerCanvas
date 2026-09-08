@@ -19,3 +19,10 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Backend: PASS, 31 tests total covering all demo item types, CRUD, validation, persistence, completion, and nondestructive demo loading.
 - Frontend unit test and production build: PASS.
 - Browser CRUD and reload persistence: PASS (1 workflow). Six shell viewport tests also passed against FastAPI. A required-label test selector was corrected before the workflow passed.
+
+## Phase 4 — independent resumes and library
+
+- Backend: PASS, 35 tests total, including immutable source separation, duplication, archive/delete, optimistic revisions, template content preservation, and bounded typography.
+- Frontend unit test and production build: PASS.
+- Browser library workflow: create, name, duplicate, rename, archive, delete, reload.
+- Fixed separator whitespace normalization discovered by the content-preservation test and action-menu dismissal discovered by browser testing.

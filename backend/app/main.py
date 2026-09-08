@@ -49,6 +49,8 @@ def create_app(settings: Settings | None = None):
     from .demo import router as demo_router
     app.include_router(profile_router)
     app.include_router(demo_router)
+    from .resumes import router as resume_router
+    app.include_router(resume_router)
 
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
