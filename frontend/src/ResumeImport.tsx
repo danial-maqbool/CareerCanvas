@@ -217,10 +217,12 @@ export default function ResumeImport({
   }
 
   function setItem(tempId: string, update: Partial<ItemState>) {
+    setResult(null)
     setItems((current) => current.map((item) => (item.temp_id === tempId ? { ...item, ...update } : item)))
   }
 
   function updateItemField(tempId: string, key: string, value: string) {
+    setResult(null)
     setItems((current) =>
       current.map((item) =>
         item.temp_id === tempId
@@ -228,6 +230,16 @@ export default function ResumeImport({
           : item
       )
     )
+  }
+
+  function updatePersonalSelection(next: Record<string, boolean>) {
+    setResult(null)
+    setPersonalSelected(next)
+  }
+
+  function updatePersonal(key: string, field: FieldCandidate, value: string) {
+    setResult(null)
+    setPersonal((current) => ({ ...current, [key]: { ...field, value } }))
   }
 
   async function applyImport() {
@@ -453,7 +465,8 @@ export default function ResumeImport({
                     <button
                       className="text-action"
                       onClick={() => {
-                        setPersonalSelected(Object.fromEntries(Object.keys(personal).map((key) => [key, true])))
+                        setResult(null)
+                        updatePersonalSelection(Object.fromEntries(Object.keys(personal).map((key) => [key, true])))
                         setItems((current) => current.map((item) => ({ ...item, selected: true })))
                       }}
                     >
@@ -462,7 +475,8 @@ export default function ResumeImport({
                     <button
                       className="text-action"
                       onClick={() => {
-                        setPersonalSelected(Object.fromEntries(Object.keys(personal).map((key) => [key, false])))
+                        setResult(null)
+                        updatePersonalSelection(Object.fromEntries(Object.keys(personal).map((key) => [key, false])))
                         setItems((current) => current.map((item) => ({ ...item, selected: false })))
                       }}
                     >
@@ -481,15 +495,15 @@ export default function ResumeImport({
                             <input
                               type="checkbox"
                               checked={!!personalSelected[key]}
-                              onChange={(event) => setPersonalSelected({ ...personalSelected, [key]: event.target.checked })}
+                              onChange={(event) =>
+                                updatePersonalSelection({ ...personalSelected, [key]: event.target.checked })
+                              }
                             />
                             {key.replaceAll('_', ' ')}
                           </span>
                           <input
                             value={field.value}
-                            onChange={(event) =>
-                              setPersonal({ ...personal, [key]: { ...field, value: event.target.value } })
-                            }
+                            onChange={(event) => updatePersonal(key, field, event.target.value)}
                           />
                           <small>Confidence {Math.round(field.confidence * 100)}% · {field.source}</small>
                           {field.conflict && <em>Existing value: {field.existing}</em>}
