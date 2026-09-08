@@ -1,10 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import PrintView from './PrintView'
 import './styles.css'
 import './profile.css'
 import './resume.css'
 import './editor.css'
 import './templates.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>)
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode>{window.location.pathname.startsWith('/print/')?<PrintView id={window.location.pathname.split('/')[2]}/>:<App />}</React.StrictMode>)

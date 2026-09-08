@@ -63,3 +63,10 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Sixteen frontend tests and production build: PASS.
 - Pagination measures escaped React markup with the actual template CSS and splits long bullet collections or long descriptions. Oversized indivisible content is retained and reported as a warning.
 - One-page fitting applies bounded spacing/type reductions; it does not promise that arbitrarily long content can fit a single readable page.
+
+## Phase 11 — PDF and document JSON export
+
+- All twelve templates: PASS through an isolated live FastAPI server and Chromium. PDFs reopen in pypdf, preserve expected text and link annotations, have correct A4 media boxes, match measured page counts, and contain no blank pages.
+- All 23 generated pages rendered with Poppler and inspected as a contact sheet. The Two Column side-rail placement was improved, re-tested, and re-rendered.
+- Browser PDF and JSON downloads after pending edits: PASS; downloaded names and JSON content reflect the saved document.
+- Generated validation PDFs and PNGs remain in ignored `data/validation/`.

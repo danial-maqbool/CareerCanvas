@@ -1,6 +1,6 @@
 # Resume engine
 
-Status: implementation pending.
+Status: document editing, template rendering, measured pagination, PDF export, and JSON document export implemented. DOCX and version history are subsequent phases.
 
 ## Section model
 
@@ -17,6 +17,10 @@ Support A4 and US Letter with explicit paper boundaries. Detect overflow and und
 ## PDF export
 
 Use Chromium print rendering with semantic text, hyperlinks, explicit page dimensions, and controlled breaks. Validate extracted text, page count, links, and rendered output for every template.
+
+The backend opens the local `/print/{resume_id}` view, blocks third-party requests, waits for measured pagination and local fonts, and produces a tagged PDF. It uses Playwright Chromium or an installed Google Chrome fallback. Export concurrency is bounded at two browsers. The print view reuses the editor's React document and template CSS; it does not photograph the preview.
+
+Pagination measures escaped server-rendered React markup in an offscreen browser node. Items move as units where possible; oversized bullet collections and long descriptions can continue on subsequent pages. Indivisible oversized content remains present with a warning. The Two Column template fills its designated side rail before allocating the main column to subsequent pages.
 
 ## DOCX export
 

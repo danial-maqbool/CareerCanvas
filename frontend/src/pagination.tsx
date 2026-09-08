@@ -50,7 +50,10 @@ export function paginateDocument(document:ResumeDocument):Pagination{
   }
   try{
     if(!fits(current))warnings.push('The header or summary exceeds one page. Shorten the summary or reduce spacing.')
-    for(const section of document.sections.filter(s=>s.visible)){
+    const visible=document.sections.filter(s=>s.visible)
+    // The dedicated side rail must participate before main-column pagination.
+    const ordered=document.template==='Two Column'?[...visible.filter(s=>['skills','certifications','languages'].includes(s.kind)),...visible.filter(s=>!['skills','certifications','languages'].includes(s.kind))]:visible
+    for(const section of ordered){
       if(!section.items.length){const candidate={...section,items:[]};current.document.sections.push(candidate);if(!fits(current)&&hasContent()){current.document.sections.pop();nextPage();current.document.sections.push(candidate)}}
       for(const item of section.items)add(section,item)
     }
