@@ -82,6 +82,11 @@ def create_app(settings: Settings | None = None):
     from .search import router as search_router
     app.include_router(search_router)
 
+    from .workspace_settings import router as settings_router
+    from .backup import router as backup_router
+    app.include_router(settings_router)
+    app.include_router(backup_router)
+
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
         app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')
