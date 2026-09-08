@@ -9,6 +9,7 @@ import './editor.css'
 import './templates.css'
 import './versions.css'
 import './analysis.css'
+import './responsive-overrides.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
