@@ -58,7 +58,7 @@ test('first run resume import fills profile and direct ATS can create an editabl
   await expect(page.getByText('Contact phone present')).toBeVisible()
   await page.getByRole('button', { name: 'Extracted Text' }).click()
   await expect(page.getByText(/AI engineer focused on reliable production systems/)).toBeVisible()
-  await page.getByRole('button', { name: 'ATS Review' }).click()
+  await page.getByRole('button', { name: 'ATS Review', exact: true }).click()
   await page.getByRole('button', { name: 'Create CareerCanvas Resume' }).click()
   await expect(page.getByLabel('Resume name')).toHaveValue('standard_resume')
 })
