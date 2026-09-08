@@ -49,3 +49,9 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Browser: Classic → Technical → Modern preserves sections and personal content; all twelve gallery cards and category filters verified.
 - Four-step creation wizard with visual template selection: PASS in the library regression workflow.
 - Populated template gallery screenshot inspected. PDF layout validation remains a later export gate.
+
+## Phase 9 — design controls
+
+- Sixteen frontend tests and production build: PASS.
+- Browser: font, point size, primary color, long date formatting, US Letter selection, and persistence: PASS.
+- Six system-font choices, six color/type presets, bounded spacing and type controls, heading styles, and header alignment implemented.

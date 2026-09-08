@@ -1,0 +1,20 @@
+import { test, expect } from '@playwright/test'
+
+test('typography, colors and Letter sizing update immediately and persist',async({page,request})=>{
+  const p=await (await request.get('/api/profile')).json()
+  const r=await (await request.post('/api/resumes',{data:{name:`Design ${Date.now()}`,selected_ids:p.items.map((i:{id:string})=>i.id)}})).json()
+  await page.goto('/');await page.getByRole('button',{name:'Resumes',exact:true}).click();await page.getByRole('button',{name:`Open ${r.name}`,exact:true}).click()
+  await page.getByRole('button',{name:'Design',exact:true}).click()
+  await page.getByRole('combobox',{name:'Font family',exact:true}).selectOption('Georgia')
+  await page.getByRole('combobox',{name:'Paper size',exact:true}).selectOption('Letter')
+  await page.getByRole('combobox',{name:'Date style',exact:true}).selectOption('long')
+  await page.getByLabel('Font size',{exact:true}).fill('12')
+  await page.getByLabel('Primary color',{exact:true}).fill('#284f80')
+  await expect(page.locator('.resume-paper')).toHaveCSS('font-family','Georgia')
+  await expect(page.locator('.resume-paper')).toHaveCSS('font-size','16px')
+  await expect(page.locator('.resume-paper h1')).toHaveCSS('color','rgb(40, 79, 128)')
+  await expect(page.locator('.resume-paper')).toContainText('June 2023')
+  await page.getByRole('button',{name:'Back to resumes',exact:true}).click()
+  const saved=await (await request.get(`/api/resumes/${r.id}`)).json()
+  expect(saved.document.style).toMatchObject({font:'Georgia',page_size:'Letter',font_size:12,accent:'#284f80'})
+})
