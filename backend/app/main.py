@@ -76,6 +76,9 @@ def create_app(settings: Settings | None = None):
     from .analytics import router as analytics_router
     app.include_router(analytics_router)
 
+    from .github_import import router as github_router
+    app.include_router(github_router)
+
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
         app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')
