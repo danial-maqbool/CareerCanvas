@@ -55,3 +55,11 @@ Shell tests do not establish acceptance of resume editing, exports, or other pro
 - Sixteen frontend tests and production build: PASS.
 - Browser: font, point size, primary color, long date formatting, US Letter selection, and persistence: PASS.
 - Six system-font choices, six color/type presets, bounded spacing and type controls, heading styles, and header alignment implemented.
+
+## Phase 10 — measured pagination
+
+- Browser long-experience fixture: PASS, all 35 numbered bullets retained, multiple nonblank pages, A4 and Letter heights bounded.
+- Live editor regression: PASS. Styling persistence: PASS after waiting for the asynchronous save-and-close operation to finish.
+- Sixteen frontend tests and production build: PASS.
+- Pagination measures escaped React markup with the actual template CSS and splits long bullet collections or long descriptions. Oversized indivisible content is retained and reported as a warning.
+- One-page fitting applies bounded spacing/type reductions; it does not promise that arbitrarily long content can fit a single readable page.

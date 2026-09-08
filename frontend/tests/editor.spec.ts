@@ -13,7 +13,7 @@ test('live editing, inline editing, hide, reorder, autosave and undo',async({pag
   await page.getByRole('button',{name:'Save',exact:true}).click()
   await page.getByRole('button',{name:'02 Summary',exact:true}).click()
   await page.getByLabel('Professional summary',{exact:true}).fill('Built reliable Python services for three teams.')
-  await expect(page.locator('.resume-paper')).toContainText('Built reliable Python services for three teams.')
+  await expect(page.locator('.paginated-document')).toContainText('Built reliable Python services for three teams.')
   await page.getByRole('button',{name:'Hide Certifications',exact:true}).click()
   await page.getByRole('button',{name:'Move Projects up',exact:true}).click()
   await page.getByRole('button',{name:'Move Projects up',exact:true}).click()
