@@ -2,30 +2,32 @@
 
 **One career profile. Many tailored resumes. A workspace for everything that comes next.**
 
-CareerCanvas is an MIT-licensed, local-first visual resume editor and career management application. Build reusable career content, compose independent resumes, edit real paper previews, export documents, and track applications through interviews and offers.
+CareerCanvas is an MIT-licensed, local-first visual resume editor and career management application. Build reusable career content, import existing resumes, compose independent resume versions, run ATS-readiness checks, export documents, and track applications through interviews and offers.
 
 ![CareerCanvas dashboard with fictional data](docs/screenshots/dashboard.png)
 
 ## Overview
 
-A single-user desktop web application with a local SQLite database, 13 workspace areas, 12 distinct templates, and 78 documented capability groups. All committed screenshots and demo records are fictional.
+A single-user desktop web application with a local SQLite database, 13 workspace areas, 12 distinct templates, and 80 documented capability groups. All committed screenshots and demo records are fictional.
 
 ## Why CareerCanvas
 
 Your career history is broader than any one application. Store experience, skills, projects, and achievements once; select and customize a different subset for each resume. Editing one resume never rewrites the source profile or sibling documents. Application history connects the exact resume version used with observed outcomes.
 
-This project demonstrates advanced frontend interaction, document generation, drag-and-drop editing, state management, template systems, career data modeling, versioning, ATS analysis, data visualization, and human-controlled AI assistance.
+This project demonstrates advanced frontend interaction, document parsing and generation, drag-and-drop editing, state management, template systems, career data modeling, versioning, ATS analysis, data visualization, and human-controlled AI assistance.
 
 ## Features
 
 - Visual resume library: naming, duplication, archive, primary selection, thumbnails, versions, and exports.
 - Three-panel editor: inline text, rich summaries, section and bullet reordering, live pagination, and bounded one-page fitting.
+- Local PDF, DOCX, and TXT resume import with review, source evidence, duplicate handling, and Career Profile mapping.
+- Direct uploaded-resume ATS review with document inspection and an extracted-text view before any CareerCanvas rebuild.
 - Reusable profile, skills, achievements, experience, education, projects, certifications, publications, languages, references, and portfolio.
 - Transparent ATS checks and job matching; reviewed tailored copies preserve originals.
 - Cover letters, application Kanban, contacts, follow-ups, interviews, STAR stories, question bank, goals, and analytics.
 - Rearrangeable dashboard, search, command palette, quick add, themes, tags, and validated workspace backup/restore.
 
-See the [numbered capability inventory](docs/FEATURES.md), [validation report](docs/VALIDATION.md), and [complete delivery report](docs/DELIVERY.md).
+See the [numbered capability inventory](docs/FEATURES.md), [resume import guide](docs/RESUME_IMPORT.md), [validation report](docs/VALIDATION.md), and [complete delivery report](docs/DELIVERY.md).
 
 ## Screenshots
 
@@ -56,9 +58,17 @@ Templates differ in heading treatments, alignment, type hierarchy, rails, and co
 
 The profile is reusable source material rather than a resume. Structured drawers manage personal information and ten content categories. Completion guidance focuses on useful essentials; references default to excluded. Achievements can be reused, skills have categories and learning metadata, and portfolio records hold project/research/demo links. Public GitHub repository import previews retrieved metadata before adding a project.
 
+## Resume Import & Direct ATS Review
+
+Use **Import Resume** from Dashboard or Career Profile to process a PDF, DOCX, or TXT resume locally. CareerCanvas detects common sections, proposes personal and career-profile fields, shows confidence and source evidence, and requires review before it writes anything. Likely duplicates support explicit **Keep existing**, **Merge**, **Replace existing**, or **Import as new** actions.
+
+Use **Upload Resume for ATS Review** from Dashboard or Resumes to inspect an existing file directly. The review checks extractable text, contact details, standard sections, page count, likely reading-order complexity, image-based risk, and document structure. The **Extracted Text** tab shows what the parser can actually read. Detected web links remain clickable. The same upload can then be imported into Career Profile or converted into an editable CareerCanvas resume without uploading it again.
+
+Normal digital PDFs use selectable-text extraction. Image-only/scanned PDFs are detected and flagged; automatic OCR is not bundled. DOCX parsing reads paragraphs, tables, and hyperlinks and warns when much of the content is stored in tables. The original uploaded file is processed in memory by the local server and is not retained by this workflow. See [Resume Import & Direct ATS Review](docs/RESUME_IMPORT.md).
+
 ## ATS Analysis
 
-Eleven deterministic checks cover structured text, headings, reading order, critical image content, contact details, experience, education, skills, readable type, and page count. Findings explain severity and weight; edits invalidate stale results.
+Eleven deterministic checks cover structured text, headings, reading order, critical image content, contact details, experience, education, skills, readable type, and page count. Findings explain severity and weight; edits invalidate stale results. Direct uploaded-file review uses corresponding file-level evidence instead of requiring a CareerCanvas document first.
 
 **CareerCanvas ATS Readiness Score is an application-specific heuristic. It is not a score returned by a real employer ATS.** See the [complete formula and limitations](docs/ATS_ANALYSIS.md).
 
@@ -82,13 +92,13 @@ Charts use persisted records: submissions, response/interview/offer rates, avera
 
 - **PDF:** Chromium prints the shared HTML/CSS renderer with selectable text, hyperlinks, explicit page sizes, and measured boundaries. Indivisible oversized content produces guidance instead of a clipped export.
 - **DOCX:** python-docx creates editable headings, paragraphs, native bullets, and links. Fonts, colors, and page settings are retained in a single-column Word layout; pagination can differ from PDF.
-- **JSON:** Export/import individual resumes or a complete versioned workspace. Restore validates schemas and relationships, requires review, and creates a pre-restore safety backup. API keys are excluded.
+- **JSON:** Export/import individual CareerCanvas resumes or a complete versioned workspace. Restore validates schemas and relationships, requires review, and creates a pre-restore safety backup. API keys are excluded.
 
 ## Architecture
 
-React 19, TypeScript, Vite, Tailwind CSS, dnd-kit, Zustand, React Hook Form, Zod, TipTap, Recharts, and Lucide form the frontend. Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy, Alembic, and SQLite provide the local API and storage. Playwright/Chromium and python-docx produce documents.
+React 19, TypeScript, Vite, Tailwind CSS, dnd-kit, Zustand, React Hook Form, Zod, TipTap, Recharts, and Lucide form the frontend. Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy, Alembic, and SQLite provide the local API and storage. Playwright/Chromium and python-docx produce documents. pypdf and python-docx provide local resume-file parsing.
 
-SQL relationships connect profiles, resumes, immutable versions, jobs, histories, letters, interviews, and contacts. Validated JSON models extensible career items and independent resume snapshots. Ten Alembic migrations run at startup. See [architecture](docs/ARCHITECTURE.md) and [resume engine](docs/RESUME_ENGINE.md).
+SQL relationships connect profiles, resumes, immutable versions, jobs, histories, letters, interviews, and contacts. Validated JSON models extensible career items and independent resume snapshots. Ten Alembic migrations run at startup. See [architecture](docs/ARCHITECTURE.md), [resume engine](docs/RESUME_ENGINE.md), and [resume import architecture](docs/RESUME_IMPORT.md).
 
 ## Installation
 
@@ -107,7 +117,7 @@ cd ..
 python run.py
 ```
 
-Open [CareerCanvas locally](http://127.0.0.1:8000). The launcher uses the project virtual environment, applies migrations, and serves the built frontend. Existing databases are preserved. On macOS/Linux use `python3 -m venv .venv`, `.venv/bin/python`, and `npm`; those platforms have not received this Windows acceptance run.
+Open [CareerCanvas locally](http://127.0.0.1:8000). The launcher uses the project virtual environment, applies migrations, and serves the built frontend. Existing databases are preserved. On macOS/Linux use `python3 -m venv .venv`, `.venv/bin/python`, and `npm`; those platforms have not received the original Windows acceptance run.
 
 Copy `.env.example` to `.env` only for custom configuration. Defaults: loopback hosting, `data/careercanvas.db`, and AI disabled. Optional providers require `AI_ENABLED`, `AI_PROVIDER`, and the relevant model/key. Gemini model availability is not assumed or hardcoded.
 
@@ -130,11 +140,11 @@ npx.cmd playwright install chromium
 npm.cmd run test:e2e
 ```
 
-Acceptance passed **93 backend tests, 17 frontend tests, and 33 Playwright workflows**, with no browser console errors in those workflows. Browser tests start isolated servers and temporary databases, including a full career journey and restart persistence. Export tests reopen files and inspect text, sections, links, and pagination. See [validation details](docs/VALIDATION.md).
+The original Windows acceptance passed **93 backend tests, 17 frontend tests, and 33 Playwright workflows**, with no browser console errors in those workflows. Resume-import regression tests and a dedicated browser workflow were added with this extension and are also executed by [CareerCanvas CI](.github/workflows/ci.yml). Browser tests use isolated servers and temporary databases. Export tests reopen files and inspect text, sections, links, and pagination. See [validation details](docs/VALIDATION.md).
 
 ## Privacy
 
-Data stays in local SQLite by default. No telemetry or external fonts are required. Databases, imports, backups, PDFs, DOCX files, and credentials are ignored by Git. External AI sends selected text after consent; GitHub import is user initiated. Backups exclude API keys. Committed seed data and screenshots are fictional.
+Data stays in local SQLite by default. No telemetry or external fonts are required. Databases, imports, backups, PDFs, DOCX files, and credentials are ignored by Git. Resume-file import is processed locally and the original file is not retained by the import workflow. External AI sends selected text only after consent; GitHub import is user initiated. Backups exclude API keys. Committed seed data and screenshots are fictional.
 
 This is a single-user app for a trusted device. Loopback hosting, host validation, and cross-origin write rejection are implemented. Hosted multi-user authentication and encrypted-at-rest storage are not included.
 
@@ -142,23 +152,24 @@ This is a single-user app for a trusted device. Loopback hosting, host validatio
 
 - ATS and job matching are English-oriented heuristics, not employer scoring or qualification verification.
 - AI factual checks are incomplete; review every suggestion. Live Gemini/Ollama calls remain unverified without provider configuration.
-- DOCX is a single-column editable reconstruction, not exact PDF template reproduction.
+- Automatic OCR for scanned/image-only resumes is not bundled. CareerCanvas detects the condition and asks for a text-based file or local OCR output.
+- DOCX export is a single-column editable reconstruction, not exact PDF template reproduction. DOCX **resume import** is supported for content extraction and ATS review; exact source-layout reproduction is not.
 - Very large indivisible text needs manual restructuring; fitting never deletes content or reduces body text below 10 pt.
-- Optional photo support and DOCX import are not implemented; JSON import and backup restore are supported.
+- Optional photo support is not implemented; CareerCanvas JSON import and backup restore preserve native application data.
 - GitHub import has mocked API coverage; live availability depends on connectivity and rate limits.
-- Responsive checks cover six browser viewports, not physical devices. No known unresolved bugs were found in tested workflows.
+- Responsive checks cover six browser viewports, not physical devices. Tested workflows do not guarantee defect-free behavior for every arbitrary resume format.
 
 ## Project Structure
 
 ```text
-backend/app/          API, validated models, exports, analysis, demo
+backend/app/          API, resume import, validated models, exports, analysis, demo
 backend/migrations/   Ten incremental Alembic migrations
-backend/tests/        Isolated pytest and document tests
-frontend/src/         Workspace, editor, templates, styles, state
+backend/tests/        Isolated pytest, import, and document tests
+frontend/src/         Workspace, resume import, editor, templates, styles, state
 frontend/tests/       Isolated Playwright journeys and viewport tests
 frontend/scripts/     Guarded fictional screenshot capture
 scripts/              PDF inspection and Word rendering helpers
-docs/                 Architecture, engine, ATS, features, validation
+docs/                 Architecture, resume import, engine, ATS, features, validation
 docs/screenshots/     Twelve fictional portfolio screenshots
 data/                 Ignored private storage and artifacts
 run.py                Environment bootstrap, migrations, server
