@@ -70,6 +70,9 @@ def create_app(settings: Settings | None = None):
     from .applications import router as applications_router
     app.include_router(applications_router)
 
+    from .career_activity import router as career_router
+    app.include_router(career_router)
+
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
         app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')

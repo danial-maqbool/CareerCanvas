@@ -1,3 +1,4 @@
+from backend.app import career_activity
 from backend.app import applications
 from backend.app import cover_letters
 from alembic import context
