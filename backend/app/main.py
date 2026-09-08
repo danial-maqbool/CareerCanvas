@@ -55,6 +55,8 @@ def create_app(settings: Settings | None = None):
     app.include_router(export_router)
     from .versions import router as version_router
     app.include_router(version_router)
+    from .bullet_quality import router as bullet_router
+    app.include_router(bullet_router)
 
     dist = ROOT / 'frontend/dist'
     if (dist / 'assets').exists():
