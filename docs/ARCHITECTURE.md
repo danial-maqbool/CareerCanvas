@@ -4,6 +4,34 @@
 
 React 19 and TypeScript run in Vite, with Tailwind CSS and component-specific CSS. The workspace exposes Dashboard, Resumes, Career Profile, Applications, Cover Letters, Achievements, Skills, Portfolio, Interviews, Career Goals, Analytics, Templates, and Settings. Recharts reads API-derived statistics; there are no static production analytics values. React Hook Form/Zod validate career forms. Native dialog drawers provide focus containment; visible labels, focus rings, and keyboard alternatives accompany pointer interactions.
 
+`frontend/src/ResumeImport.tsx` provides a shared PDF/DOCX/TXT import workflow for Career Profile population and direct ATS review. The browser reads the selected local file, sends Base64 content only to the loopback FastAPI API, and does not persist the original file. The UI keeps ATS results, extracted text, source evidence, duplicate actions, and reviewed profile mapping in one dialog. Detected HTTP/HTTPS source links are rendered as links rather than plain text.
+
+## Resume Import Pipeline
+
+`backend/app/resume_import.py` implements deterministic local ingestion:
+
+```text
+PDF / DOCX / TXT
+       ↓
+bounded in-memory parser
+       ↓
+text + structural metadata + links
+       ↓
+section detection
+       ↓
+personal / career-item extraction
+       ↓
+confidence + source evidence
+       ↓
+duplicate comparison
+       ↓
+reviewed apply to Career Profile
+```
+
+PDF parsing uses `pypdf` for selectable text, page count, embedded-image signals, annotations/links, encrypted-file rejection, and a conservative image-only/scanned warning. DOCX parsing uses `python-docx` for paragraphs, tables, and hyperlinks and bounds the expanded ZIP size before parsing. TXT accepts UTF-8 or Windows-1252. Automatic OCR is not bundled; scanned PDFs remain visible as a warning rather than producing invented text.
+
+The `/api/import/preview` route is read-only with respect to career data. `/api/import/apply` validates every reviewed item through the existing Pydantic Career Profile schemas. Likely duplicates expose keep, merge, replace, or import-as-new behavior; no existing profile item is silently overwritten. Approved imports append a major-action audit event. See [Resume Import & Direct ATS Review](RESUME_IMPORT.md).
+
 ## Resume Editor State
 
 `frontend/src/editor-store.ts` owns the active resume snapshot, selected section, save state, and up to 100 undo snapshots. Resume documents contain personal details, ordered sections, independently editable items, source item identifiers, visibility flags, a template key, and style settings. Source IDs preserve provenance; source profile edits do not silently propagate into existing resumes. Template changes only replace presentation settings. TipTap stores a restricted rich-text tree and synchronized plain summary text for matching and analysis.
@@ -43,6 +71,10 @@ Profile items use a profile foreign key, indexed kind, and Pydantic-validated JS
 
 Application transitions append timeline entries. Analytics use recorded history so a later rejection does not erase a previously reached interview stage. Tags are reusable labels: rename propagates references, and delete removes the label without deleting tagged records. Major actions are audited; individual keystrokes are not.
 
+## ATS Analysis
+
+Native CareerCanvas resumes use the deterministic eleven-check ATS readiness model in `backend/app/ats.py`. Uploaded files use corresponding file-level evidence in `backend/app/resume_import.py`: extractable text, standard headings, likely reading order, image-only risk, contact details, key sections, text density, and page count where the format exposes it. Both scores are CareerCanvas heuristics, not employer ATS scores. The uploaded-file review can be used without creating or changing a CareerCanvas resume. See [ATS analysis](ATS_ANALYSIS.md).
+
 ## Export Pipeline
 
 The PDF endpoint opens a local print route in Playwright Chromium, blocks third-party network requests, waits for fonts and pagination, checks page geometry, and prints tagged selectable text. It verifies resulting page count. Oversized indivisible content returns actionable HTTP 422 guidance. A semaphore bounds concurrent exports. DOCX uses python-docx semantic paragraphs and hyperlinks. JSON exports validate an explicit format/version before import.
@@ -53,6 +85,8 @@ Complete workspace backups include profile, resumes and versions, jobs and histo
 
 AI is optional and off by default. Gemini requires configured credentials/model and per-request consent; Ollama uses localhost and a configured model. Only selected text is sent. The API returns a suggestion separately from source content. Checks flag new detected numbers (including written numbers), dates, technologies, qualifications, and named entities. The UI blocks acceptance while factual flags remain and allows reject/edit. These heuristics do not guarantee factual equivalence: human review is required. Live provider availability is unverified; deterministic guards and mocked provider flows are tested. No specific Gemini model is hardcoded.
 
+Resume-file import and uploaded-file ATS review do not require Gemini or Ollama. They remain local deterministic workflows even when AI assistance is disabled.
+
 ## Tests and Privacy
 
-Pytest uses temporary SQLite databases. Playwright fixtures launch their own servers and restore only isolated test state; the integrated journey verifies restart persistence. The guarded screenshot script requires the fictional demo profile and companies. Private databases/documents/backups and credentials are ignored. There is no telemetry, required external font, automatic resume upload, multi-user authentication, or encryption-at-rest layer.
+Pytest uses temporary SQLite databases. Playwright fixtures launch their own servers and restore only isolated test state; the integrated journey verifies restart persistence. The resume-import suite covers extraction, direct ATS review, duplicate handling, scanned-PDF detection, and the browser import flow. The guarded screenshot script requires the fictional demo profile and companies. Private databases/documents/backups and credentials are ignored. There is no telemetry, required external font, automatic external resume upload, multi-user authentication, or encryption-at-rest layer.
