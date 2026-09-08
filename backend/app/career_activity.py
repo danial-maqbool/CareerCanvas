@@ -25,6 +25,14 @@ class Contact(RecordMixin,Base):
     application_id:Mapped[str|None]=mapped_column(ForeignKey('job_applications.id',ondelete='SET NULL'),nullable=True,index=True)
 class Story(RecordMixin,Base):__tablename__='star_stories'
 class Question(RecordMixin,Base):__tablename__='interview_questions'
+class Goal(RecordMixin,Base):__tablename__='career_goals'
+class GoalData(StrictModel):
+    target_date:str=Field(default='',max_length=10)
+    progress:int=Field(default=0,ge=0,le=100)
+    status:Literal['Active','Completed','Paused']='Active'
+    milestones:list[Task]=Field(default_factory=list,max_length=100)
+    tags:list[str]=Field(default_factory=list,max_length=100)
+    notes:str=Field(default='',max_length=10000)
 class InterviewData(StrictModel):
     company:str=Field(default='',max_length=200)
     role:str=Field(default='',max_length=200)
@@ -59,7 +67,7 @@ class QuestionData(StrictModel):
     category:Literal['Behavioral','Technical','System Design','AI / ML','Coding','Leadership','Company']='Behavioral'
     answer:str=Field(default='',max_length=30000)
     notes:str=Field(default='',max_length=10000)
-MODELS={'interviews':(Interview,InterviewData),'contacts':(Contact,ContactData),'stories':(Story,StoryData),'questions':(Question,QuestionData)}
+MODELS={'goals':(Goal,GoalData),'interviews':(Interview,InterviewData),'contacts':(Contact,ContactData),'stories':(Story,StoryData),'questions':(Question,QuestionData)}
 class RecordInput(StrictModel):
     title:str=Field(min_length=1,max_length=300)
     data:dict=Field(default_factory=dict)
