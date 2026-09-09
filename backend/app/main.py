@@ -64,7 +64,17 @@ def create_app(settings: Settings | None = None):
     from .ats import analyze_uploaded_resume, router as ats_router
     from . import resume_import as resume_import_module
 
-    resume_import_module.uploaded_ats = analyze_uploaded_resume
+    def uploaded_ats_compatible(parsed, detected, personal):
+        result = analyze_uploaded_resume(parsed, detected, personal)
+        # Preserve the established UI wording used by existing browser workflows.
+        for check in result["checks"]:
+            if check["key"] == "email":
+                check["label"] = "Contact email present"
+            elif check["key"] == "phone":
+                check["label"] = "Contact phone present"
+        return result
+
+    resume_import_module.uploaded_ats = uploaded_ats_compatible
     app.include_router(resume_import_module.router)
 
     from .exports import router as export_router

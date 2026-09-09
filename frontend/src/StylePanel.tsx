@@ -210,7 +210,8 @@ export default function StylePanel() {
               onChange={(e) => set(control.key, Number(e.target.value))}
             />
             <input
-              aria-label={`${control.label} exact value`}
+              aria-label={control.label}
+              title={`Exact ${control.label.toLowerCase()} value`}
               type="number"
               min={control.min}
               max={control.max}
