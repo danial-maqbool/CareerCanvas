@@ -4,6 +4,8 @@
 
 React 19 and TypeScript run in Vite, with Tailwind CSS and component-specific CSS. The workspace exposes Dashboard, Resumes, Career Profile, Applications, Cover Letters, Achievements, Skills, Portfolio, Interviews, Career Goals, Analytics, Templates, and Settings. Recharts reads API-derived statistics; there are no static production analytics values. React Hook Form/Zod validate career forms. Native dialog drawers provide focus containment; visible labels, focus rings, and keyboard alternatives accompany pointer interactions.
 
+The resume editor prioritizes explicit user control. Section rows expose labeled Show/Hide, Up, and Down actions in addition to drag handles. Design controls provide both sliders and exact numeric values, plus explicit ATS-safe, Compact, Comfortable, and Reset layout actions. Automated layout actions change presentation only; they do not rewrite career facts.
+
 `frontend/src/ResumeImport.tsx` provides a shared PDF/DOCX/TXT import workflow for Career Profile population and direct ATS review. The browser reads the selected local file, sends Base64 content only to the loopback FastAPI API, and does not persist the original file. The UI keeps ATS results, extracted text, source evidence, duplicate actions, and reviewed profile mapping in one dialog. Detected HTTP/HTTPS source links are rendered as links rather than plain text.
 
 ## Resume Import Pipeline
@@ -73,7 +75,13 @@ Application transitions append timeline entries. Analytics use recorded history 
 
 ## ATS Analysis
 
-Native CareerCanvas resumes use the deterministic eleven-check ATS readiness model in `backend/app/ats.py`. Uploaded files use corresponding file-level evidence in `backend/app/resume_import.py`: extractable text, standard headings, likely reading order, image-only risk, contact details, key sections, text density, and page count where the format exposes it. Both scores are CareerCanvas heuristics, not employer ATS scores. The uploaded-file review can be used without creating or changing a CareerCanvas resume. See [ATS analysis](ATS_ANALYSIS.md).
+`backend/app/ats.py` is the shared scoring engine for native CareerCanvas resumes and direct uploaded-resume reviews. Native resumes use sixteen weighted checks across three categories: Parsing & Contact, Content Strength, and Readability. Checks support partial credit and expose earned points, evidence details, and remediation text. Critical failures apply visible score caps, for example a missing email, missing contact methods, no Experience/Projects evidence, too little machine-readable text, or image-dependent critical content.
+
+The native score evaluates machine-readable text, standard headings, reading order, contact details, evidence sections, skills coverage, measurable impact, action-oriented achievement bullets, date coverage, font size, page count, bullet length, and text density. Academic/research purposes use a more permissive page-count rule.
+
+Uploaded PDF/DOCX/TXT files use the same scoring policy but replace editor-state evidence with parser evidence: extracted text, detected headings, table/multi-column signals, scanned/image-only risk, contact fields, content statements, dates, density, and parser page metadata. `create_app()` assigns this scorer to the import preview path so native and uploaded-resume scoring do not drift into separate policies.
+
+The ATS UI shows the final score, raw weighted score when a cap applies, category subscores, partial results, critical caps, and a one-click **ATS-safe layout** action. That action changes formatting only: it uses a conservative single-column template, restores standard section headings, enforces readable type, and keeps user content unchanged. Both scores remain CareerCanvas heuristics, not employer ATS scores. See [ATS analysis](ATS_ANALYSIS.md).
 
 ## Export Pipeline
 
@@ -89,4 +97,4 @@ Resume-file import and uploaded-file ATS review do not require Gemini or Ollama.
 
 ## Tests and Privacy
 
-Pytest uses temporary SQLite databases. Playwright fixtures launch their own servers and restore only isolated test state; the integrated journey verifies restart persistence. The resume-import suite covers extraction, direct ATS review, duplicate handling, scanned-PDF detection, and the browser import flow. The guarded screenshot script requires the fictional demo profile and companies. Private databases/documents/backups and credentials are ignored. There is no telemetry, required external font, automatic external resume upload, multi-user authentication, or encryption-at-rest layer.
+Pytest uses temporary SQLite databases. Playwright fixtures launch their own servers and restore only isolated test state; the integrated journey verifies restart persistence. The resume-import suite covers extraction, direct ATS review, duplicate handling, scanned-PDF detection, and the browser import flow. ATS regression tests cover category breakdowns, score caps, partial credit, measurable/action-oriented achievement scoring, and ATS-safe layout controls. The guarded screenshot script requires the fictional demo profile and companies. Private databases/documents/backups and credentials are ignored. There is no telemetry, required external font, automatic external resume upload, multi-user authentication, or encryption-at-rest layer.

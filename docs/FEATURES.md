@@ -22,13 +22,13 @@ This release contains **80 capability groups** listed below. A group is a cohere
 18. Drag-and-drop section ordering.
 19. Drag-and-drop experience bullet ordering.
 20. Keyboard section and bullet reordering.
-21. Section show/hide without content loss.
+21. Explicit section controls with labeled Show/Hide, Up, and Down actions plus drag handles.
 22. Custom section creation and duplication.
 23. Personal contact editing and field visibility.
 24. Resume-local content item editing and removal.
 25. Achievement insertion from the reusable profile library.
-26. Font family and body-size customization.
-27. Line height, page margin, section, and bullet spacing.
+26. Font family and body-size customization with both sliders and exact numeric values.
+27. Line height, page margin, section, and bullet spacing with quick Compact, Comfortable, ATS-safe, and Reset actions.
 28. Primary, secondary, and text colors with presets.
 29. Heading, alignment, and date styling.
 30. Skills columns and separators.
@@ -59,7 +59,7 @@ This release contains **80 capability groups** listed below. A group is a cohere
 55. Reviewed public GitHub repository metadata import.
 56. Achievement library with tags and metrics.
 57. Deterministic bullet-quality feedback.
-58. Eleven weighted ATS readiness checks and actionable findings.
+58. Sixteen-check native ATS readiness model with partial credit, category scores, critical score caps, measurable/action-oriented achievement checks, date and density checks, and an explicit ATS-safe layout repair action.
 59. Job-description extraction and transparent match components.
 60. Matched, missing, related, and existing-profile evidence views.
 61. Reviewed tailored resume copies preserving originals.
@@ -81,6 +81,6 @@ This release contains **80 capability groups** listed below. A group is a cohere
 77. Workspace backup/restore, reusable tags, and major-action audit events.
 78. Explicit first-run fictional demo workspace with populated documents and activity.
 79. Reviewed PDF, DOCX, and TXT resume import into Career Profile with local text extraction, field confidence/source evidence, duplicate detection, per-record keep/replace/merge/new choices, and import audit entries.
-80. Direct uploaded-resume ATS review with extracted-text preview, document-structure inspection, selectable-text/image-based warnings, detected links, standard-section checks, and one-click creation of an editable CareerCanvas resume.
+80. Direct uploaded-resume ATS review with the same strict scoring policy, extracted-text preview, document-structure inspection, selectable-text/image-based warnings, detected links, standard-section checks, content-quality checks, and one-click creation of an editable CareerCanvas resume.
 
 Photo support and automatic OCR for scanned/image-only resumes are not included. Scanned PDFs are detected and reported with a local-OCR recommendation. Hosted multi-user authentication and guaranteed AI factual equivalence are not offered.
