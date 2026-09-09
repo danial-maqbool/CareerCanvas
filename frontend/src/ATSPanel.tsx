@@ -60,23 +60,55 @@ function verdict(score: number) {
   return ['Needs revision before sending', 'Resolve critical structure, contact, or content issues first.']
 }
 
+function readCachedResult(): Result | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const resumeId = useEditor.getState().resume?.id
+    if (!resumeId) return null
+    const raw = window.sessionStorage.getItem(`careercanvas:ats:${resumeId}`)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Result
+    return typeof parsed?.score === 'number' && Array.isArray(parsed?.checks) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function cacheResult(resumeId: string, result: Result) {
+  try {
+    window.sessionStorage.setItem(`careercanvas:ats:${resumeId}`, JSON.stringify(result))
+  } catch {
+    /* Session cache is a UI convenience only. */
+  }
+}
+
 export default function ATSPanel({ onClose }: { onClose: () => void }) {
-  const [result, setResult] = useState<Result | null>(null),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState(''),
-    [notice, setNotice] = useState('')
+  const [initialCache] = useState(() => {
+    const result = readCachedResult()
+    return { result, stale: Boolean(result) }
+  })
+  const [result, setResult] = useState<Result | null>(initialCache.result)
+  const [stale, setStale] = useState(initialCache.stale)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const change = useEditor((state) => state.change)
 
   async function run() {
     setBusy(true)
     setError('')
+    setNotice('')
     try {
       await flushSave()
       const resume = useEditor.getState().resume!
       const pages = paginateDocument(resume.document).pages.length
-      setResult(
-        await api<Result>(`/resumes/${resume.id}/ats`, json('POST', { page_count: pages }))
+      const next = await api<Result>(
+        `/resumes/${resume.id}/ats`,
+        json('POST', { page_count: pages })
       )
+      setResult(next)
+      setStale(false)
+      cacheResult(resume.id, next)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -96,9 +128,9 @@ export default function ATSPanel({ onClose }: { onClose: () => void }) {
         if (headings[section.kind]) section.heading = headings[section.kind]
       }
     })
-    setResult(null)
+    setStale(Boolean(result))
     setNotice(
-      'Applied ATS-safe layout settings: single-column sections, standard headings, readable type, and conservative spacing. Content was not changed.'
+      'Applied ATS-safe layout settings: single-column sections, standard headings, readable type, and conservative spacing. Content was not changed. Run the analysis again to refresh the score.'
     )
   }
 
@@ -114,7 +146,7 @@ export default function ATSPanel({ onClose }: { onClose: () => void }) {
           </span>
           <h2>ATS readiness</h2>
           <p>
-            CareerCanvas now checks parser safety, contact data, content evidence, achievement quality,
+            CareerCanvas checks parser safety, contact data, content evidence, achievement quality,
             dates, typography, page count, and text density.
           </p>
           <div
@@ -130,6 +162,11 @@ export default function ATSPanel({ onClose }: { onClose: () => void }) {
               <span>OUT OF 100</span>
             </div>
           </div>
+          {stale && result && (
+            <p className="ats-stale-note" role="status">
+              Previous result shown. Run ATS analysis to refresh it after your latest edits.
+            </p>
+          )}
           <h3>{verdictText[0]}</h3>
           <p>{verdictText[1]}</p>
           {result && result.raw_score !== result.score && (
