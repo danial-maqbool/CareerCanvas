@@ -10,6 +10,7 @@ import './templates.css'
 import './versions.css'
 import './analysis.css'
 import './responsive-overrides.css'
+import './editor-polish.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

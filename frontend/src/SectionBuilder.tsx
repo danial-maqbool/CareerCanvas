@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Eye, EyeOff } from 'lucide-react'
+import { ArrowDown, ArrowUp, Eye, EyeOff, MousePointerClick } from 'lucide-react'
 import { ResumeSection } from './resume-types'
 import { useEditor } from './editor-store'
 import { SortableList, SortableRow } from './SortableList'
@@ -25,7 +25,10 @@ export default function SectionBuilder({
     })
   }
   return (
-    <div className="section-list">
+    <div className="section-list section-list-v2">
+      <p className="section-list-help">
+        <MousePointerClick size={13} /> Select a section to edit its heading, visibility, layout, and content.
+      </p>
       <SortableList
         ids={sections.map((s) => s.id)}
         onReorder={(ids) =>
@@ -39,13 +42,18 @@ export default function SectionBuilder({
             <div
               className={`section-row ${selected === sec.id ? 'selected' : ''} ${!sec.visible ? 'hidden-section' : ''}`}
             >
-              <button className="section-select" onClick={() => onSelect(sec.id)}>
+              <button
+                className="section-select"
+                title={`Edit ${sec.heading}`}
+                onClick={() => onSelect(sec.id)}
+              >
                 <span>{sec.heading}</span>
-                <small>{sec.items.length}</small>
+                <small>{sec.items.length} item{sec.items.length === 1 ? '' : 's'}</small>
               </button>
-              <div className="section-row-actions">
+              <div className="section-row-actions section-row-actions-v2">
                 <button
-                  className="icon-button"
+                  className="section-action-button"
+                  title={`${sec.visible ? 'Hide' : 'Show'} ${sec.heading}`}
                   aria-label={`${sec.visible ? 'Hide' : 'Show'} ${sec.heading}`}
                   onClick={() =>
                     change((r) => {
@@ -54,22 +62,27 @@ export default function SectionBuilder({
                   }
                 >
                   {sec.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+                  <span>{sec.visible ? 'Hide' : 'Show'}</span>
                 </button>
                 <button
-                  className="icon-button"
+                  className="section-action-button"
                   disabled={index === 0}
+                  title={`Move ${sec.heading} up`}
                   aria-label={`Move ${sec.heading} up`}
                   onClick={() => move(sec.id, -1)}
                 >
                   <ArrowUp size={12} />
+                  <span>Up</span>
                 </button>
                 <button
-                  className="icon-button"
+                  className="section-action-button"
                   disabled={index === sections.length - 1}
+                  title={`Move ${sec.heading} down`}
                   aria-label={`Move ${sec.heading} down`}
                   onClick={() => move(sec.id, 1)}
                 >
                   <ArrowDown size={12} />
+                  <span>Down</span>
                 </button>
               </div>
             </div>

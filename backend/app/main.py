@@ -59,9 +59,14 @@ def create_app(settings: Settings | None = None):
     from .resumes import router as resume_router
 
     app.include_router(resume_router)
-    from .resume_import import router as resume_import_router
 
-    app.include_router(resume_import_router)
+    # Keep native and uploaded-resume ATS scoring aligned through one scoring engine.
+    from .ats import analyze_uploaded_resume, router as ats_router
+    from . import resume_import as resume_import_module
+
+    resume_import_module.uploaded_ats = analyze_uploaded_resume
+    app.include_router(resume_import_module.router)
+
     from .exports import router as export_router
 
     app.include_router(export_router)
@@ -71,8 +76,6 @@ def create_app(settings: Settings | None = None):
     from .bullet_quality import router as bullet_router
 
     app.include_router(bullet_router)
-    from .ats import router as ats_router
-
     app.include_router(ats_router)
     from .job_matching import router as match_router
 
