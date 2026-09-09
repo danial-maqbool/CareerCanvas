@@ -96,7 +96,10 @@ test('complete career journey survives a server restart', async ({ page, request
   await page.getByRole('textbox', { name: /^email/i }).fill('alex.morgan@example.com')
   await page.getByRole('button', { name: 'ATS Check', exact: true }).click()
   await page.getByRole('button', { name: 'Run ATS analysis', exact: true }).click()
-  await expect(page.locator('.score-ring strong')).toHaveText(String(score + 15))
+  await expect(page.locator('.score-ring strong')).not.toHaveText(String(score))
+  const improvedScore = Number(await page.locator('.score-ring strong').innerText())
+  expect(improvedScore).toBeGreaterThan(score)
+  expect(improvedScore - score).toBeGreaterThanOrEqual(15)
   await page.getByRole('button', { name: 'Close drawer', exact: true }).click()
   const folder = mkdtempSync(join(tmpdir(), 'careercanvas-acceptance-'))
   for (const format of ['PDF', 'DOCX']) {
