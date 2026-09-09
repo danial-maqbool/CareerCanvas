@@ -11,6 +11,7 @@ import './versions.css'
 import './analysis.css'
 import './responsive-overrides.css'
 import './editor-polish.css'
+import './ui-remodel.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
