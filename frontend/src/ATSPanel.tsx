@@ -178,7 +178,7 @@ export default function ATSPanel({ onClose }: { onClose: () => void }) {
           <div className="ats-primary-actions">
             <button className="button primary" disabled={busy} onClick={run}>
               <ScanText size={15} />
-              {busy ? 'Analyzing…' : result ? 'Run again' : 'Run ATS analysis'}
+              {busy ? 'Analyzing…' : stale || !result ? 'Run ATS analysis' : 'Run again'}
             </button>
             <button className="button secondary" onClick={applySafeLayout}>
               <WandSparkles size={15} /> Apply ATS-safe layout
