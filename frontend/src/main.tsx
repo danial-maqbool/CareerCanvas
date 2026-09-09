@@ -13,6 +13,7 @@ import './responsive-overrides.css'
 import './editor-polish.css'
 import './ui-remodel.css'
 import './ui-remodel-detail.css'
+import './ui-remodel-fixes.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
