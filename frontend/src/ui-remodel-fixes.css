@@ -1,0 +1,119 @@
+/* Targeted post-remodel fixes for stable async states and mobile editor controls. */
+
+.ats-stale-note {
+  margin: -10px auto 14px;
+  max-width: 240px;
+  padding: 8px 10px;
+  border: 1px solid #d8e1f4;
+  border-radius: 9px;
+  background: #f5f7ff;
+  color: #5d6f9b !important;
+  font-size: 9px !important;
+  line-height: 1.55 !important;
+}
+
+@media (max-width: 768px) {
+  .editor-toolbar {
+    position: relative;
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+    padding: 8px 10px;
+    gap: 6px;
+    row-gap: 6px;
+    overflow: hidden;
+  }
+
+  .editor-toolbar .back-button {
+    flex: 0 0 auto;
+  }
+
+  .editor-document-name {
+    flex: 1 1 180px;
+    min-width: 120px;
+  }
+
+  .editor-toolbar-actions {
+    position: relative;
+    z-index: 1;
+    flex: 1 0 100%;
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    padding: 1px 0 4px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .editor-toolbar-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .editor-toolbar-actions .button,
+  .editor-toolbar-actions .icon-button,
+  .editor-toolbar-actions .action-menu {
+    flex: 0 0 auto;
+  }
+
+  .editor-toolbar-actions .button {
+    min-height: 34px;
+    white-space: nowrap;
+  }
+
+  .mobile-editor-controls {
+    position: relative;
+    z-index: 30;
+    flex: 0 0 auto;
+    min-height: 42px;
+    background: #f8fafc;
+    box-shadow: 0 1px 0 #dfe6ef;
+  }
+
+  .mobile-editor-controls button {
+    min-height: 32px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    color: #5e7089;
+  }
+
+  .mobile-editor-controls button:hover {
+    background: #eef2ff;
+    color: var(--cc-primary);
+  }
+}
+
+@media (max-width: 520px) {
+  .editor-document-name {
+    flex-basis: calc(100% - 52px);
+  }
+
+  .editor-toolbar-actions {
+    gap: 5px;
+  }
+}
+
+:root[data-theme='dark'] .ats-stale-note {
+  border-color: #35466c;
+  background: #18274a;
+  color: #b8c6f5 !important;
+}
+
+@media (max-width: 768px) {
+  :root[data-theme='dark'] .mobile-editor-controls {
+    background: #131e2e;
+    box-shadow: 0 1px 0 #293a50;
+  }
+
+  :root[data-theme='dark'] .mobile-editor-controls button {
+    color: #aebbd0;
+  }
+
+  :root[data-theme='dark'] .mobile-editor-controls button:hover {
+    background: #1d2b53;
+    color: #c5d0ff;
+  }
+}
